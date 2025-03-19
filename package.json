@@ -1,0 +1,21 @@
+{
+  "name": "demo-exam-help",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "license": "ISC",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.2.2",
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.31.0"
+  },
+  "dependencies": {
+    "on-change": "^5.0.1"
+  }
+}
