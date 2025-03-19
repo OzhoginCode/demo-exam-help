@@ -454,5 +454,4 @@ nmtui
 Задание 11
 HQ-SRV, BR-SRV, HQ-RTR, BR-RTR, HQ-CLI
 timedatectl set-timezone Europe/Moscow
-
 `;
