@@ -7,7 +7,7 @@ const devices = {
   isp: {
     name: 'ISP',
     interfaces: {
-      external: { name: 'ens18', ip: '<ВНЕШНИЙ>', mask: '24', gateway: '192.168.44.1', destination: 'Интернет' },
+      external: { name: 'ens18', ip: '<ВНЕШНИЙ>', mask: '24', gateway: '<ВНЕШНИЙ>', destination: 'Интернет' },
       hqRtr: { name: 'ens19', ip: '172.16.4.1', mask: '28', gateway: '-', destination: 'HQ-RTR' },
       brRtr: { name: 'ens20', ip: '172.16.5.1', mask: '28', gateway: '-', destination: 'BR-RTR' },
     },
