@@ -2,45 +2,45 @@ const devices = {
   isp: {
     name: 'ISP',
     interfaces: {
-      external: { name: 'ens18', ip: '<ВНЕШНИЙ>', mask: '24', gateway: '<ВНЕШНИЙ>', destination: 'Интернет' },
-      hqRtr: { name: 'ens19', ip: '172.16.4.1', mask: '28', gateway: '-', destination: 'HQ-RTR' },
-      brRtr: { name: 'ens20', ip: '172.16.5.1', mask: '28', gateway: '-', destination: 'BR-RTR' },
+      external: { name: 'ens18', ip: '<ВНЕШНИЙ>', mask: '24', gateway: '<ВНЕШНИЙ>', destination: 'Интернет', netAddress: '' },
+      hqRtr: { name: 'ens19', ip: '172.16.4.1', mask: '28', gateway: '-', destination: 'HQ-RTR', netAddress: '172.16.4.0' },
+      brRtr: { name: 'ens20', ip: '172.16.5.1', mask: '28', gateway: '-', destination: 'BR-RTR', netAddress: '172.16.5.0' },
     },
   },
   hqRtr: {
     name: 'HQ-RTR',
     interfaces: {
-      isp: { name: 'ens18', ip: '172.16.4.2', mask: '28', gateway: '172.16.4.1', destination: 'ISP' },
-      brRtr: { name: 'gre1', ip: '10.5.5.1', mask: '30', gateway: '-', destination: 'BR-RTR' },
-      hqCli: { name: 'VLAN100', ip: '192.168.100.1', mask: '28', gateway: '-', destination: 'HQ-CLI' },
-      hqSrv: { name: 'VLAN200', ip: '192.168.200.1', mask: '28', gateway: '-', destination: 'HQ-SRV' },
-      vlan999: { name: 'VLAN999', ip: '192.168.99.1', mask: '29', gateway: '-', destination: 'VLAN999 (?)' },
+      isp: { name: 'ens18', ip: '172.16.4.2', mask: '28', gateway: '172.16.4.1', destination: 'ISP', netAddress: '172.16.4.0' },
+      brRtr: { name: 'gre1', ip: '10.5.5.1', mask: '30', gateway: '-', destination: 'BR-RTR', netAddress: '10.5.5.0' },
+      hqCli: { name: 'VLAN100', ip: '192.168.100.1', mask: '28', gateway: '-', destination: 'HQ-CLI', netAddress: '192.168.100.0' },
+      hqSrv: { name: 'VLAN200', ip: '192.168.200.1', mask: '28', gateway: '-', destination: 'HQ-SRV', netAddress: '192.168.200.0' },
+      vlan999: { name: 'VLAN999', ip: '192.168.99.1', mask: '29', gateway: '-', destination: 'VLAN999 (?)', netAddress: '192.168.99.0' },
     },
   },
   hqSrv: {
     name: 'HQ-SRV',
     interfaces: {
-      hqRtr: { name: 'ens18', ip: '192.168.100.2', mask: '28', gateway: '192.168.100.1', destination: 'HQ-RTR' },
+      hqRtr: { name: 'ens18', ip: '192.168.100.2', mask: '28', gateway: '192.168.100.1', destination: 'HQ-RTR', netAddress: '192.168.100.0' },
     },
   },
   hqCli: {
     name: 'HQ-CLI',
     interfaces: {
-      hqRtr: { name: 'ens18', ip: '192.168.200.2', mask: '28', gateway: '192.168.200.1', destination: 'HQ-RTR' },
+      hqRtr: { name: 'ens18', ip: '192.168.200.2', mask: '28', gateway: '192.168.200.1', destination: 'HQ-RTR', netAddress: '192.168.200.0' },
     },
   },
   brRtr: {
     name: 'BR-RTR',
     interfaces: {
-      isp: { name: 'ens18', ip: '172.16.5.2', mask: '28', gateway: '172.16.5.1', destination: 'ISP' },
-      brSrv: { name: 'ens19', ip: '192.168.0.1', mask: '28', gateway: '-', destination: 'BR-SRV' },
-      hqRtr: { name: 'gre1', ip: '10.5.5.2', mask: '30', gateway: '-', destination: 'HQ-RTR' },
+      isp: { name: 'ens18', ip: '172.16.5.2', mask: '28', gateway: '172.16.5.1', destination: 'ISP', netAddress: '172.16.5.0' },
+      brSrv: { name: 'ens19', ip: '192.168.0.1', mask: '28', gateway: '-', destination: 'BR-SRV', netAddress: '192.168.0.0' },
+      hqRtr: { name: 'gre1', ip: '10.5.5.2', mask: '30', gateway: '-', destination: 'HQ-RTR', netAddress: '10.5.5.0' },
     },
   },
   brSrv: {
     name: 'BR-SRV',
     interfaces: {
-      brRtr: { name: 'ens18', ip: '192.168.0.2', mask: '28', gateway: '192.168.0.1', destination: 'BR-RTR' },
+      brRtr: { name: 'ens18', ip: '192.168.0.2', mask: '28', gateway: '192.168.0.1', destination: 'BR-RTR', netAddress: '192.168.0.0' },
     },
   },
 };
@@ -49,17 +49,18 @@ export default () => `
 <p>Запуск консоли ISP</p>
 <p>login root</p>
 <p>Password toor</p>
+<p><code>hostnamectl hostname ISP</code></p>
 <p>Накатываем обновления</p>
 <p><code>apt-get update</code></p>
 <p><code>apt-get install –y NetworkManager-tui iptables</code></p>
 <p><code>systemctl enable --now NetworkManager</code></p>
 <p><code>nmtui</code></p>
 <p>настраиваем первый интерфейс</p>
-<p>задаем имя профиля в соответствии с номером оборудования</p>
+<p>задаем имя профиля в соответствии с номером оборудования (ЧТО ЭТО ЗНАЧИТ???)</p>
 <p>выставляем ручной ip для ${devices.isp.interfaces.hqRtr.name}: ${devices.isp.interfaces.hqRtr.ip}/${devices.isp.interfaces.hqRtr.mask}</p>
 <p>аналогично настраиваем ${devices.isp.interfaces.brRtr.name}: ${devices.isp.interfaces.brRtr.ip}/${devices.isp.interfaces.brRtr.mask}</p>
-<p><code>hostnamectl hostname IPS</code></p>
-<p>проверяем <code>ip –br a</code></p>
+<p>проверяем:</p>
+<p><code>ip –br a</code></p>
 <p>настраиваем маршрутизацию</p>
 <p><code>vim /etc/net/sysctl.conf</code></p>
 <p>меняем 0 на 1 в forward</p>
@@ -69,15 +70,15 @@ export default () => `
 <p><code>systemctl enable iptables --now # нужно проверить, работает ли эта команда именно на ISP</code></p>
 <br>
 <p>Запуск консоли HQ-RTR</p>
-<p>Открываем конфигурацию ${devices.hqRtr.interfaces.isp.name} в vim /etc/net/ifaces/${devices.hqRtr.interfaces.isp.name}/options</p>
-<p><code>BOOTPROTO=static</code></p>
-<p><code>SYSTEMD_BOOTPROTO=static</code></p>
-<p>Создаем файл конфигурации <code>vim /etc/net/ifaces/ens18/ipv4address</code></p>
-<p>${devices.hqRtr.interfaces.isp.ip}/${devices.hqRtr.interfaces.isp.mask}</p>
-<p>Создаем файл конфигурации <code>vim /etc/net/ifaces/ens18/ipv4route</code></p>
-<p>Вводим строку <code>default via ${devices.isp.interfaces.hqRtr.ip}</code></p>
-<p>Создаем файл конфигурации <code>vim /etc/net/ifaces/ens18/resolv.conf</code></p>
-<p><code>nameserver 8.8.8.8</code></p>
+<p><code>hostnamectl set-hostname HQ-RTR.au-team.irpo</code></p>
+<p>Указываем статичный ipv4 адрес для ${devices.hqRtr.interfaces.isp.name}</p>
+<p><code>sed -i 's/\bdhcp4\b/static/g; s/\bdhcp\b/static/g' /etc/net/ifaces/${devices.hqRtr.interfaces.isp.name}/options</code></p>
+<p>Настраиваем IP-адрес</p>
+<p><code>echo '${devices.hqRtr.interfaces.isp.ip}/${devices.hqRtr.interfaces.isp.mask}' > /etc/net/ifaces/${devices.hqRtr.interfaces.isp.name}/ipv4address</code></p>
+<p>Настраиваем шлюз</p>
+<p><code>echo 'default via ${devices.isp.interfaces.hqRtr.ip}' > /etc/net/ifaces/${devices.hqRtr.interfaces.isp.name}/ipv4route</code></p>
+<p>Указываем DNS</p>
+<p><code>echo 'nameserver 8.8.8.8' /etc/net/ifaces/${devices.hqRtr.interfaces.isp.name}/resolv.conf></code></p>
 <p><code>iptables –t nat –j MASQUERADE –A POSTROUTING</code></p>
 <p><code>iptables-save > /etc/sysconfig/iptables</code></p>
 <p><code>systemctl enable iptables --now</code></p>
@@ -85,39 +86,35 @@ export default () => `
 <p><code>apt-get install –y NetworkManager-tui</code></p>
 <p><code>systemctl enable --now NetworkManager</code></p>
 <p><code>nmtui</code></p>
-<p><code>hostnamectl set-hostname HQ-RTR.au-team.irpo</code></p>
 <br>
 <p>Запуск консоли BR-RTR</p>
-<p>Открываем конфигурацию ens18 в vim vim /etc/net/ifaces/ens18/options</p>
-<p>BOOTPROTO=static</p>
-<p>TYPE=eth</p>
-<p>CONFIG_WIRELESS=no</p>
-<p>SYSTEMD_BOOTPROTO=static</p>
-<p>CONFIG_IPV4=yes</p>
-<p>DISABLE=no</p>
-<p>MM_CONTROLLED=no</p>
-<p>SYSTEMD_CONTROLLED=no</p>
-<p>Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4address</p>
-<p>${devices.brRtr.interfaces.isp.ip}/${devices.brRtr.interfaces.isp.mask}</p>
-<p>Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4route</p>
-<p>Вводим строку default via ${devices.isp.interfaces.brRtr.ip}</p>
-<p>Создаем файл конфигурации vim /etc/net/ifaces/ens18/resolv.conf</p>
-<p>nameserver 8.8.8.8</p>
-<p>vim /etc/net/sysctl.conf</p>
-<p>меняем 0 на 1 в forward</p>
-<p>iptables –t nat –j MASQUERADE –A POSTROUTING</p>
-<p>iptables-save > /etc/sysconfig/iptables</p>
-<p>systemctl enable iptables --now</p>
-<p>apt-get update</p>
-<p>apt-get install –y NetworkManager-tui</p>
-<p>systemctl enable --now NetworkManager</p>
+<p><code>hostnamectl set-hostname BR-RTR.au-team.irpo</code></p>
+<p>Указываем статичный ipv4 адрес для ${devices.brRtr.interfaces.isp.name}</p>
+<p><code>sed -i 's/\bdhcp4\b/static/g; s/\bdhcp\b/static/g' /etc/net/ifaces/${devices.brRtr.interfaces.isp.name}/options</code></p>
+<p>Настраиваем IP-адрес</p>
+<p><code>echo '${devices.brRtr.interfaces.isp.ip}/${devices.brRtr.interfaces.isp.mask}' > /etc/net/ifaces/${devices.brRtr.interfaces.isp.name}/ipv4address</code></p>
+<p>Настраиваем шлюз</p>
+<p><code>echo 'default via ${devices.isp.interfaces.brRtr.ip}' > /etc/net/ifaces/${devices.brRtr.interfaces.isp.name}/ipv4route</code></p>
+<p>Указываем DNS</p>
+<p><code>echo 'nameserver 8.8.8.8' /etc/net/ifaces/${devices.brRtr.interfaces.isp.name}/resolv.conf></code></p>
+<p><code>iptables –t nat –j MASQUERADE –A POSTROUTING</code></p>
+<p><code>iptables-save > /etc/sysconfig/iptables</code></p>
+<p><code>systemctl enable iptables --now</code></p>
+<p>Накатываем обновления <code>apt-get update</code></p>
+<p><code>apt-get install –y NetworkManager-tui</code></p>
+<p><code>systemctl enable --now NetworkManager</code></p>
 <br>
 <p>Запуск консоли BR-RTR</p>
-<p>создаем папку mkdir /etc/net/ifaces/ens19</p>
-<p>Копируем файл конфигурации cp /etc/net/ifaces/ens18/options /etc/net/ifaces/ens19/options</p>
-<p>редактируем vim /etc/net/ifaces/ens19/options</p>
-<p>NM_CONTROLLED=yes</p>
+<p>создаем папку</p>
+<p><code>mkdir /etc/net/ifaces/ens19</code></p>
+<p>Копируем файл конфигурации</p>
+<p><code>cp /etc/net/ifaces/ens18/options /etc/net/ifaces/ens19/options</code></p>
+<p>редактируем</p>
+<p><code>vim /etc/net/ifaces/ens19/options</code></p>
+<p><code>NM_CONTROLLED=yes</code></p>
 <p>перезапускаем network и NetworkManager</p>
+<p><code>systemctl restart network</code></p>
+<p><code>systemctl restart NetworkManager</code></p>
 <p>запускаем nmtui</p>
 <p>редактируем 1 соединение ens19</p>
 <p>имя профиля ставим BR-SRV</p>
