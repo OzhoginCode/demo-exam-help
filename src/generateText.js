@@ -1,3 +1,5 @@
+/* eslint-disable no-tabs */
+
 const devices = {
   isp: {
     name: 'ISP',
@@ -121,146 +123,135 @@ export default () => `
 <p>ip ${devices.brRtr.interfaces.brSrv.ip}/${devices.brRtr.interfaces.brSrv.mask}</p>
 <br>
 <p>Запуск консоли BR-SRV</p>
-<p>hostnamectl hostname BR-SRV.au-team.irpo</p>
-<p>Открываем конфигурацию ens18 в vim vim /etc/net/ifaces/ens18/options</p>
-<p>BOOTPROTO=static</p>
-<p>TYPE=eth</p>
-<p>CONFIG_WIRELESS=no</p>
-<p>SYSTEMD_BOOTPROTO=static</p>
-<p>CONFIG_IPV4=yes</p>
-<p>DISABLE=no</p>
-<p>MM_CONTROLLED=no</p>
-<p>SYSTEMD_CONTROLLED=no</p>
-<p>Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4address</p>
-<p>${devices.brRtr.interfaces.brSrv.ip}/${devices.brRtr.interfaces.brSrv.mask}</p>
-<p>Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4route</p>
-<p>Вводим строку default via ${devices.brRtr.interfaces.brSrv.ip}</p>
-<p>Создаем файл конфигурации vim /etc/net/ifaces/ens18/resolv.conf</p>
-<p>nameserver 8.8.8.8</p>
-<p>systemctl restart network</p>
+<p><code>hostnamectl set-hostname BR-SRV.au-team.irpo</code></p>
+<p>Указываем статичный ipv4 адрес для ${devices.brSrv.interfaces.brRtr.name}</p>
+<p><code>sed -i 's/\bdhcp4\b/static/g; s/\bdhcp\b/static/g' /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/options</code></p>
+<p>Настраиваем IP-адрес</p>
+<p><code>echo '${devices.brSrv.interfaces.brRtr.ip}/${devices.brSrv.interfaces.brRtr.mask}' > /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/ipv4address</code></p>
+<p>Настраиваем шлюз</p>
+<p><code>echo 'default via ${devices.brRtr.interfaces.brSrv.ip}' > /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/ipv4route</code></p>
+<p>Указываем DNS</p>
+<p><code>echo 'nameserver 8.8.8.8' /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/resolv.conf></code></p>
+<p><code>systemctl restart network</code></p>
 <br>
-<p>Запуск HQ-SRV</p>
-<p>hostnamectl hostname HQ-SRV.au-team.irpo</p>
-<p>exec bash</p>
-<p>Открываем конфигурацию ens18 в vim vim /etc/net/ifaces/ens18/options</p>
-<p>BOOTPROTO=static</p>
-<p>SYSTEMD_BOOTPROTO=static</p>
-<p>Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4address</p>
-<p>${devices.hqSrv.interfaces.hqRtr.ip}/${devices.hqSrv.interfaces.hqRtr.mask}</p>
-<p>Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4route</p>
-<p>Вводим строку default via ${devices.hqRtr.interfaces.hqCli.ip}</p>
-<p>Создаем файл конфигурации vim /etc/net/ifaces/ens18/resolv.conf</p>
-<p>nameserver 8.8.8.8</p>
-<p>systemctl restart network</p>
-<p>systemctl restart NetworkManager</p>
-<p>ping ${devices.hqRtr.interfaces.hqCli.ip}</p>
+<p>Запуск консоли HQ-SRV</p>
+<p><code>hostnamectl set-hostname HQ-SRV.au-team.irpo</code></p>
+<p>Указываем статичный ipv4 адрес для ${devices.hqSrv.interfaces.hqRtr.name}</p>
+<p><code>sed -i 's/\bdhcp4\b/static/g; s/\bdhcp\b/static/g' /etc/net/ifaces/${devices.hqSrv.interfaces.hqRtr.name}/options</code></p>
+<p>Настраиваем IP-адрес</p>
+<p><code>echo '${devices.hqSrv.interfaces.hqRtr.ip}/${devices.hqSrv.interfaces.hqRtr.mask}' > /etc/net/ifaces/${devices.hqSrv.interfaces.hqRtr.name}/ipv4address</code></p>
+<p>Настраиваем шлюз</p>
+<p><code>echo 'default via ${devices.hqSrv.interfaces.hqRtr.ip}' > /etc/net/ifaces/${devices.hqSrv.interfaces.hqRtr.name}/ipv4route</code></p>
+<p>Указываем DNS</p>
+<p><code>echo 'nameserver 8.8.8.8' /etc/net/ifaces/${devices.hqSrv.interfaces.hqRtr.name}/resolv.conf></code></p>
+<p><code>systemctl restart network</code></p>
 <br>
 <p>Задание 3</p>
 <p>HQ-SRV и BR-SRV</p>
-<p>adduser sshuser</p>
-<p>passwd sshuser</p>
-<p>указываем P@ssw0rd</p>
-<p>usermod -u 1010 sshuser</p>
-<p>visudo</p>
+<p><code>adduser sshuser</code></p>
+<p><code>passwd sshuser</code></p>
+<p>указываем <code>P@ssw0rd</code></p>
+<p><code>usermod -u 1010 sshuser</code></p>
+<p><code>visudo</code></p>
 <p>раскомментировать строки:</p>
-<p>WHEEL_USERS ALL=(ALL:ALL) ALL</p>
-<p>WHEEL_USERS ALL=(ALL:ALL) NOPASSWD: ALL</p>
-<p>vim /etc/group</p>
+<p><code>WHEEL_USERS ALL=(ALL:ALL) ALL</code></p>
+<p><code>WHEEL_USERS ALL=(ALL:ALL) NOPASSWD: ALL</code></p>
+<p><code>vim /etc/group</code></p>
 <p>дополнить строку wheel пользователем sshuser</p>
 <br>
 <p>HQ-RTR и BR-RTR</p>
-<p>adduser net_admin</p>
-<p>passwd net_admin</p>
-<p>указываем P@ssw0rd</p>
-<p>visudo</p>
+<p><code>adduser net_admin</code></p>
+<p><code>passwd net_admin</code></p>
+<p>указываем <code>P@ssw0rd</code></p>
+<p><code>visudo</code></p>
 <p>раскомментировать строки:</p>
-<p>WHEEL_USERS ALL=(ALL:ALL) ALL</p>
-<p>WHEEL_USERS ALL=(ALL:ALL) NOPASSWD: ALL</p>
-<p>vim /etc/group</p>
+<p><code>WHEEL_USERS ALL=(ALL:ALL) ALL</code></p>
+<p><code>WHEEL_USERS ALL=(ALL:ALL) NOPASSWD: ALL</code></p>
+<p><code>vim /etc/group</code></p>
 <p>дополнить строку wheel пользователем net_admin</p>
 <br>
 <p>Задание 4</p>
 <p>Запуск консоли HQ-RTR</p>
-<p>apt-get install –y openvswitch</p>
-<p>systemctl enable --now openvswitch</p>
-<p>ovs-vsctl add-br HQ-SW</p>
-<p>ovs-vsctl add-port HQ-SW ens19</p>
-<p>ovs-vsctl add-port HQ-SW vlan100 tag=100 -- set  interface vlan100 type=internal</p>
-<p>ovs-vsctl add-port HQ-SW vlan200 tag=200 -- set  interface vlan200 type=internal</p>
-<p>ovs-vsctl add-port HQ-SW vlan999 tag=999 -- set  interface vlan999 type=internal</p>
-<p>mkdir /etc/net/ifaces/vlan100</p>
-<p>mkdir /etc/net/ifaces/vlan200</p>
-<p>mkdir /etc/net/ifaces/vlan999</p>
-<p>cp /etc/net/ifaces/ens18/options /etc/net/ifaces/vlan100/options</p>
-<p>cp /etc/net/ifaces/ens18/options /etc/net/ifaces/vlan200/options</p>
-<p>cp /etc/net/ifaces/ens18/options /etc/net/ifaces/vlan999/options</p>
-<p>echo ‘${devices.hqRtr.interfaces.hqCli.ip}/${devices.hqRtr.interfaces.hqCli.mask}’ >> /etc/net/ifaces/vlan100/ipv4address</p>
-<p>echo ‘${devices.hqRtr.interfaces.hqSrv.ip}/${devices.hqRtr.interfaces.hqSrv.mask}’ >> /etc/net/ifaces/vlan200/ipv4address</p>
-<p>echo ‘${devices.hqRtr.interfaces.vlan999.ip}/${devices.hqRtr.interfaces.vlan999.mask}’ >> /etc/net/ifaces/vlan999/ipv4address</p>
-<p>systemctl restart network</p>
-<p>ip -br a</p>
-<p>Запуск HQ-CLI</p>
-<p>Пароль resu</p>
-<p>Открыть терминал</p>
-<p>su -</p>
-<p>можно не настраивать если у нас есть dhcp</p>
-<p>“””</p>
-<p>пароль toor</p>
-<p>Открываем конфигурацию ens18 в vim vim /etc/net/ifaces/ens18/options</p>
-<p>BOOTPROTO=static</p>
-<p>SYSTEMD_BOOTPROTO=static</p>
-<p>Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4address</p>
-<p>${devices.hqCli.interfaces.hqRtr.ip}/${devices.hqCli.interfaces.hqRtr.mask}</p>
-<p>Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4route</p>
-<p>Вводим строку default via ${devices.hqRtr.interfaces.hqSrv.ip}</p>
-<p>Создаем файл конфигурации vim /etc/net/ifaces/ens18/resolv.conf</p>
-<p>nameserver 8.8.8.8</p>
-<p>systemctl restart network</p>
-<p>systemctl restart NetworkManager</p>
-<p>ip -br a</p>
-<p>ping ${devices.hqRtr.interfaces.hqSrv.ip}</p>
-<p>“””</p>
+<pre><code>apt-get install –y openvswitch
+systemctl enable --now openvswitch
+ovs-vsctl add-br HQ-SW
+ovs-vsctl add-port HQ-SW ens19
+ovs-vsctl add-port HQ-SW vlan100 tag=100 -- set interface vlan100 type=internal
+ovs-vsctl add-port HQ-SW vlan200 tag=200 -- set interface vlan200 type=internal
+ovs-vsctl add-port HQ-SW vlan999 tag=999 -- set interface vlan999 type=internal
+mkdir /etc/net/ifaces/vlan100
+mkdir /etc/net/ifaces/vlan200
+mkdir /etc/net/ifaces/vlan999
+cp /etc/net/ifaces/ens18/options /etc/net/ifaces/vlan100/options
+cp /etc/net/ifaces/ens18/options /etc/net/ifaces/vlan200/options
+cp /etc/net/ifaces/ens18/options /etc/net/ifaces/vlan999/options
+echo ‘${devices.hqRtr.interfaces.hqCli.ip}/${devices.hqRtr.interfaces.hqCli.mask}’ >> /etc/net/ifaces/vlan100/ipv4address
+echo ‘${devices.hqRtr.interfaces.hqSrv.ip}/${devices.hqRtr.interfaces.hqSrv.mask}’ >> /etc/net/ifaces/vlan200/ipv4address
+echo ‘${devices.hqRtr.interfaces.vlan999.ip}/${devices.hqRtr.interfaces.vlan999.mask}’ >> /etc/net/ifaces/vlan999/ipv4address
+systemctl restart network
+ip -br a</code></pre>
+<br>
+<p>Настройка статичного ip на HQ-CLI</p>
+<details>
+  <summary>Можно не настраивать если у нас есть dhcp</summary>
+  <p>Пароль resu</p>
+  <p>Открыть терминал</p>
+  <p>su -</p>
+  <p></p>
+  <p>пароль toor</p>
+  <p>Открываем конфигурацию ens18 в vim vim /etc/net/ifaces/ens18/options</p>
+  <p>BOOTPROTO=static</p>
+  <p>SYSTEMD_BOOTPROTO=static</p>
+  <p>Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4address</p>
+  <p>${devices.hqCli.interfaces.hqRtr.ip}/${devices.hqCli.interfaces.hqRtr.mask}</p>
+  <p>Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4route</p>
+  <p>Вводим строку default via ${devices.hqRtr.interfaces.hqSrv.ip}</p>
+  <p>Создаем файл конфигурации vim /etc/net/ifaces/ens18/resolv.conf</p>
+  <p>nameserver 8.8.8.8</p>
+  <p>systemctl restart network</p>
+  <p>systemctl restart NetworkManager</p>
+  <p>ip -br a</p>
+  <p>ping ${devices.hqRtr.interfaces.hqSrv.ip}</p>
+</details>
 <br>
 <p>Задание 5</p>
 <p>HQ-SRV и BR-SRV</p>
-<p>vim /etc/openssh/sshd_config</p>
-<p>правим строку на Port 2024</p>
+<p><code>vim /etc/openssh/sshd_config</code></p>
+<p>правим строку на <code>Port 2024</code></p>
 <p>добавляем строки</p>
-<p>AllowUsers sshuser</p>
-<p>MaxAuthTries 2</p>
-<p>Banner /etc/ban</p>
-<p>vim /etc/ban</p>
-<p>Authorized access only!</p>
+<p><code>AllowUsers sshuser</code></p>
+<p><code>MaxAuthTries 2</code></p>
+<p><code>Banner /etc/ban</code></p>
+<p><code>echo 'Authorized access only' > /etc/ban</code></p>
 <p>systemctl restart sshd</p>
 <br>
 <p>Задание 6</p>
 <p>BR-RTR</p>
-<p>смотрим сеть ip –br a</p>
+<p><code>nmtui</code></p>
+<p>добавляем интерфейс <code>ip tunnel</code></p>
+<p>Имя профиля: <code>HQ-RTR</code></p>
+<p>Device: <code>gre1</code></p>
+<p>Mode: <code>GRE</code></p>
+<p>Parent: <code>ens18</code></p>
+<p>Local ip: <code>${devices.brRtr.interfaces.isp.ip}</code></p>
+<p>Remote ip: <code>${devices.hqRtr.interfaces.isp.ip}</code></p>
+<p>IPv4: <code>manual</code></p>
+<p>Addresses: <code>${devices.brRtr.interfaces.hqRtr.ip}/${devices.brRtr.interfaces.hqRtr.mask}</code></p>
+<p>проверяем <code>ip –br a</code></p>
+<br>
+<p>Запуск консоли HQ-RTR</code></p>
+<p>смотрим сеть <code>ip –br a</code></p>
 <p>nmtui</p>
-<p>добавляем интерфейс ip tunnel</p>
-<p>Имя профиля HQ-RTR</p>
-<p>Device gre1</p>
-<p>Mode GRE</p>
-<p>Parent ens18</p>
-<p>Local ip ${devices.brRtr.interfaces.isp.ip}</p>
-<p>Remote ip ${devices.hqRtr.interfaces.isp.ip}</p>
-<p>IPv4 manual</p>
-<p>Addresses ${devices.brRtr.interfaces.hqRtr.ip}/${devices.brRtr.interfaces.hqRtr.mask}</p>
-<p>проверяем ip –br a</p>
-<p>hostnamectl set-hostname BR-RTR.au-team.irpo</p>
-<p>Запуск консоли HQ-RTR</p>
-<p>смотрим сеть ip –br a</p>
-<p>nmtui</p>
-<p>добавляем интерфейс ip tunnel</p>
-<p>Имя профиля BR-RTR</p>
-<p>Device gre1</p>
-<p>Mode GRE</p>
-<p>Parent ens18</p>
-<p>Local ip ${devices.hqRtr.interfaces.isp.ip}</p>
-<p>Remote ip ${devices.brRtr.interfaces.isp.ip}</p>
-<p>IPv4 manual</p>
-<p>Addresses ${devices.hqRtr.interfaces.brRtr.ip}/${devices.hqRtr.interfaces.brRtr.mask}</p>
-<p>проверяем ip –br a</p>
+<p>добавляем интерфейс <code>ip tunnel</code></p>
+<p>Имя профиля: <code>BR-RTR</code></p>
+<p>Device: <code>gre1</code></p>
+<p>Mode: <code>GRE</code></p>
+<p>Parent: <code>ens18</code></p>
+<p>Local ip: <code>${devices.hqRtr.interfaces.isp.ip}</code></p>
+<p>Remote ip: <code>${devices.brRtr.interfaces.isp.ip}</code></p>
+<p>IPv4: <code>manual</code></p>
+<p>Addresses: <code>${devices.hqRtr.interfaces.brRtr.ip}/${devices.hqRtr.interfaces.brRtr.mask}</code></p>
+<p>проверяем <code>ip –br a</code></p>
 <br>
 <p>Задание 7</p>
 <p>BR-RTR</p>
@@ -310,13 +301,13 @@ export default () => `
 <br>
 <p>Задание 8</p>
 <p>HQ-RTR</p>
-<p>iptables –t nat –j MASQUERADE –A POSTROUTING</p>
-<p>iptables-save > /etc/sysconfig/iptables</p>
-<p>systemctl enable --now iptables </p>
+<p><code>iptables –t nat –j MASQUERADE –A POSTROUTING</code></p>
+<p><code>iptables-save > /etc/sysconfig/iptables</code></p>
+<p><code>systemctl enable --now iptables</code></p>
 <p>BR-RTR</p>
-<p>iptables –t nat –j MASQUERADE –A POSTROUTING</p>
-<p>iptables-save > /etc/sysconfig/iptables</p>
-<p>systemctl enable --now iptables </p>
+<p><code>iptables –t nat –j MASQUERADE –A POSTROUTING</code></p>
+<p><code>iptables-save > /etc/sysconfig/iptables</code></p>
+<p><code>systemctl enable --now iptables</code></p>
 <br>
 <p>Задание 9</p>
 <p>HQ-RTR</p>
@@ -445,5 +436,5 @@ export default () => `
 <br>
 <p>Задание 11</p>
 <p>HQ-SRV, BR-SRV, HQ-RTR, BR-RTR, HQ-CLI</p>
-<p>timedatectl set-timezone Europe/Moscow</p>
+<p><code>timedatectl set-timezone Europe/Moscow</code></p>
 `;

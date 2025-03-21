@@ -57,18 +57,29 @@ const renderTable = (elements, { devices }) => {
 const renderText = (elements, state) => {
   // @ts-ignore
   const text = generateText(state);
-
-  // const textEl = document.createElement('div');
-  // const textChunks = text.split('\n');
-
-  // textChunks.forEach((pText) => {
-  //   const p = document.createElement('p');
-  //   p.innerHTML = pText || '&nbsp;';
-  //   textEl.appendChild(p);
-  // });
-
   elements.textContainer.innerHTML = text;
-  // elements.textContainer.appendChild(textEl);
+  document.querySelectorAll('code').forEach((code) => {
+    const wrapper = document.createElement('span');
+    wrapper.className = 'code-wrapper';
+    const toast = document.createElement('div');
+    toast.className = 'code-copy-toast';
+    toast.textContent = 'Скопировано!';
+
+    // @ts-ignore
+    code.parentNode.insertBefore(wrapper, code);
+    wrapper.appendChild(code);
+    wrapper.appendChild(toast);
+
+    code.style.cursor = 'pointer';
+    code.title = 'Кликни, чтобы скопировать';
+
+    code.addEventListener('click', () => {
+      navigator.clipboard.writeText(code.innerText).then(() => {
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 300);
+      });
+    });
+  });
 };
 
 // eslint-disable-next-line no-unused-vars
