@@ -11,7 +11,7 @@ const devices = {
     name: 'HQ-RTR',
     interfaces: {
       isp: { name: 'ens18', ip: '172.16.4.2', mask: '28', gateway: '172.16.4.1', destination: 'ISP' },
-      br: { name: 'gre1', ip: '10.5.5.1', mask: '30', gateway: '-', destination: 'BR-RTR' },
+      brRtr: { name: 'gre1', ip: '10.5.5.1', mask: '30', gateway: '-', destination: 'BR-RTR' },
       hqCli: { name: 'VLAN100', ip: '192.168.100.1', mask: '28', gateway: '-', destination: 'HQ-CLI' },
       hqSrv: { name: 'VLAN200', ip: '192.168.200.1', mask: '28', gateway: '-', destination: 'HQ-SRV' },
       vlan999: { name: 'VLAN999', ip: '192.168.99.1', mask: '29', gateway: '-', destination: 'VLAN999 (?)' },
@@ -55,8 +55,8 @@ systemctl enable --now NetworkManager
 nmtui
 настраиваем первый интерфейс
 задаем имя профиля в соответствии с номером оборудования
-выставляем ручной ip ${devices.isp.interfaces.external.ip}/${devices.isp.interfaces.external.mask}
-аналогично настраиваем второй интерфейс
+выставляем ручной ip для ${devices.isp.interfaces.hqRtr.name}: ${devices.isp.interfaces.hqRtr.ip}/${devices.isp.interfaces.hqRtr.mask}
+аналогично настраиваем ${devices.isp.interfaces.brRtr.name}: ${devices.isp.interfaces.brRtr.ip}/${devices.isp.interfaces.brRtr.mask}
 hostnamectl hostname IPS
 проверяем ip –br a
 настраиваем маршрутизацию
@@ -78,9 +78,9 @@ DISABLE=no
 MM_CONTROLLED=no
 SYSTEMD_CONTROLLED=no
 Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4address
-172.16.4.2/28
+${devices.hqRtr.interfaces.isp.ip}/${devices.hqRtr.interfaces.isp.mask}
 Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4route
-Вводим строку default via 172.16.4.1
+Вводим строку default via ${devices.isp.interfaces.hqRtr.ip}
 Создаем файл конфигурации vim /etc/net/ifaces/ens18/resolv.conf
 nameserver 8.8.8.8
 iptables –t nat –j MASQUERADE –A POSTROUTING
@@ -103,9 +103,9 @@ DISABLE=no
 MM_CONTROLLED=no
 SYSTEMD_CONTROLLED=no
 Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4address
-172.16.5.2/28
+${devices.brRtr.interfaces.isp.ip}/${devices.brRtr.interfaces.isp.mask}
 Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4route
-Вводим строку default via 172.16.5.1
+Вводим строку default via ${devices.isp.interfaces.brRtr.ip}
 Создаем файл конфигурации vim /etc/net/ifaces/ens18/resolv.conf
 nameserver 8.8.8.8
 vim /etc/net/sysctl.conf
@@ -126,7 +126,7 @@ NM_CONTROLLED=yes
 запускаем nmtui
 редактируем 1 соединение ens19
 имя профиля ставим BR-SRV
-ip 192.168.0.1/28
+ip ${devices.brRtr.interfaces.brSrv.ip}/${devices.brRtr.interfaces.brSrv.mask}
 
 Запуск консоли BR-SRV
 hostnamectl hostname BR-SRV.au-team.irpo
@@ -140,9 +140,9 @@ DISABLE=no
 MM_CONTROLLED=no
 SYSTEMD_CONTROLLED=no
 Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4address
-192.168.0.10/28
+${devices.brRtr.interfaces.brSrv.ip}/${devices.brRtr.interfaces.brSrv.mask}
 Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4route
-Вводим строку default via 192.168.0.1
+Вводим строку default via ${devices.brRtr.interfaces.brSrv.ip}
 Создаем файл конфигурации vim /etc/net/ifaces/ens18/resolv.conf
 nameserver 8.8.8.8
 systemctl restart network
@@ -154,14 +154,14 @@ exec bash
 BOOTPROTO=static
 SYSTEMD_BOOTPROTO=static
 Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4address
-192.168.100.2/28
+${devices.hqSrv.interfaces.hqRtr.ip}/${devices.hqSrv.interfaces.hqRtr.mask}
 Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4route
-Вводим строку default via 192.168.100.1
+Вводим строку default via ${devices.hqRtr.interfaces.hqCli.ip}
 Создаем файл конфигурации vim /etc/net/ifaces/ens18/resolv.conf
 nameserver 8.8.8.8
 systemctl restart network
 systemctl restart NetworkManager
-ping 192.168.100.1
+ping ${devices.hqRtr.interfaces.hqCli.ip}
 
 Задание 3
 HQ-SRV и BR-SRV
@@ -202,9 +202,9 @@ mkdir /etc/net/ifaces/vlan999
 cp /etc/net/ifaces/ens18/options /etc/net/ifaces/vlan100/options
 cp /etc/net/ifaces/ens18/options /etc/net/ifaces/vlan200/options
 cp /etc/net/ifaces/ens18/options /etc/net/ifaces/vlan999/options
-echo ‘192.168.100.1/28’ >> /etc/net/ifaces/vlan100/ipv4address
-echo ‘192.168.200.1/28’ >> /etc/net/ifaces/vlan200/ipv4address
-echo ‘192.168.99.1/28’ >> /etc/net/ifaces/vlan999/ipv4address
+echo ‘${devices.hqRtr.interfaces.hqCli.ip}/${devices.hqRtr.interfaces.hqCli.mask}’ >> /etc/net/ifaces/vlan100/ipv4address
+echo ‘${devices.hqRtr.interfaces.hqSrv.ip}/${devices.hqRtr.interfaces.hqSrv.mask}’ >> /etc/net/ifaces/vlan200/ipv4address
+echo ‘${devices.hqRtr.interfaces.vlan999.ip}/${devices.hqRtr.interfaces.vlan999.mask}’ >> /etc/net/ifaces/vlan999/ipv4address
 systemctl restart network
 ip -br a
 Запуск HQ-CLI
@@ -218,15 +218,15 @@ su -
 BOOTPROTO=static
 SYSTEMD_BOOTPROTO=static
 Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4address
-192.168.200.2/28
+${devices.hqCli.interfaces.hqRtr.ip}/${devices.hqCli.interfaces.hqRtr.mask}
 Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4route
-Вводим строку default via 192.168.200.1
+Вводим строку default via ${devices.hqRtr.interfaces.hqSrv.ip}
 Создаем файл конфигурации vim /etc/net/ifaces/ens18/resolv.conf
 nameserver 8.8.8.8
 systemctl restart network
 systemctl restart NetworkManager
 ip -br a
-ping 192.168.200.1
+ping ${devices.hqRtr.interfaces.hqSrv.ip}
 “””
 
 Задание 5
@@ -250,10 +250,10 @@ nmtui
 Device gre1
 Mode GRE
 Parent ens18
-Local ip 172.16.5.2
-Remote ip 172.16.4.2
+Local ip ${devices.brRtr.interfaces.isp.ip}
+Remote ip ${devices.hqRtr.interfaces.isp.ip}
 IPv4 manual
-Addresses 10.5.5.2/30
+Addresses ${devices.brRtr.interfaces.hqRtr.ip}/${devices.brRtr.interfaces.hqRtr.mask}
 проверяем ip –br a
 hostnamectl set-hostname BR-RTR.au-team.irpo
 Запуск консоли HQ-RTR
@@ -264,10 +264,10 @@ nmtui
 Device gre1
 Mode GRE
 Parent ens18
-Local ip 172.16.4.2
-Remote ip 172.16.5.2
+Local ip ${devices.hqRtr.interfaces.isp.ip}
+Remote ip ${devices.brRtr.interfaces.isp.ip}
 IPv4 manual
-Addresses 10.5.5.1/30
+Addresses ${devices.hqRtr.interfaces.brRtr.ip}/${devices.hqRtr.interfaces.brRtr.mask}
 проверяем ip –br a
 
 Задание 7
@@ -334,27 +334,27 @@ DHCPDARCS = vlan200
 cp /etc/dhcp/dhcpd.conf.example /etc/dhcp/dhcpd.conf
 vim /etc/dhcp/dhcpd.conf
 option domain-name “au-team.irpo”;
-option domain-name-servers 192.168.100.2;
+option domain-name-servers ${devices.hqSrv.interfaces.hqRtr.ip};
 добавить после
 ddns-update-style interim;
 update-static-leases on;
 zone au-team.irpo {
-	primary 192.168.100.2
+	primary ${devices.hqSrv.interfaces.hqRtr.ip}
 }
 выбрать начало “y” “3” и в конце “p”
 
 zone 100.168.192.in-addr.arpa {
-	primary 192.168.100.2
+	primary ${devices.hqSrv.interfaces.hqRtr.ip}
 }
 
 zone 200.168.192.in-addr.arpa {
-	primary 192.168.100.2
+	primary ${devices.hqSrv.interfaces.hqRtr.ip}
 }
 
 меняем строки:
 subnet 192.168.200.0 netmask 255.255.255.240 {
-	range 192.168.200.2 192.168.200.5;
-	option routers 192.168.200.1;
+	range ${devices.hqCli.interfaces.hqRtr.ip} 192.168.200.5;
+	option routers ${devices.hqRtr.interfaces.hqSrv.ip};
 
 systemctl restart dhcpd
 systemctl enable dhcpd
@@ -398,7 +398,7 @@ vim zone/100.db
 Убираем лишнее и пишем основные моменты:
 0	IN	SOA	100.168.192.in-addr.apra. root.100.168.192.in-addr.apra. (...)
 	IN	NS	100.168.192.in-addr.apra.
-	IN	A	192.168.100.2
+	IN	A	${devices.hqSrv.interfaces.hqRtr.ip}
 10	IN	PTR	hq-srv.au-team.irpo
 1	IN	PTR	hq-rtr.au-team.irpo
 сохраняем
@@ -407,7 +407,7 @@ vim zone/200.db
 Убираем лишнее и пишем основные моменты:
 0	IN	SOA	200.168.192.in-addr.apra. root.200.168.192.in-addr.apra. (...)
 	IN	NS	200.168.192.in-addr.apra.
-	IN	A	192.168.100.2
+	IN	A	${devices.hqSrv.interfaces.hqRtr.ip}
 10	IN	PTR	hq-cli.au-team.irpo
 1	IN	PTR	hq-rtr.au-team.irpo
 сохраняем
@@ -415,12 +415,12 @@ vim zone/au-team.db
 Убираем лишнее и пишем основные моменты:
 0	IN	SOA	hq-srv.au-team.irpo. root.au-taem.irpo. (...)
 	IN	NS	hq-srv.au-team.irpo.
-	IN	A	192.168.100.2
-hq-rtr	IN	A	192.168.100.1
-br-rtr	IN	A	192.168.0.1
-hq-srv	IN	A	192.168.100.2
-hq-cli	IN	A	192.168.100.2
-br-srv	IN	A	192.168.0.2
+	IN	A	${devices.hqSrv.interfaces.hqRtr.ip}
+hq-rtr	IN	A	${devices.hqRtr.interfaces.hqCli.ip}
+br-rtr	IN	A	${devices.brRtr.interfaces.brSrv.ip}
+hq-srv	IN	A	${devices.hqSrv.interfaces.hqRtr.ip}
+hq-cli	IN	A	${devices.hqSrv.interfaces.hqRtr.ip}
+br-srv	IN	A	${devices.brSrv.interfaces.brRtr.ip}
 wiki	IN	CNAME	hq-rtr.au-team.irpo.
 moodle	IN	CNAME	hq-rtr.au-team.irpo.
 сохраняем
@@ -430,14 +430,14 @@ chgrp -R named zone/
 named-checkconf
 named-checkconf -z
 vim /etc/net/ifaces/ens18/resolv.conf
-nameserver 192.168.100.2
+nameserver ${devices.hqSrv.interfaces.hqRtr.ip}
 domain au-team.irpo
 systemctl restart network
 systemctl aneble -- now bind
 
 BR-RTR
 vim /etc/net/ifaces/ens18/resolv.conf
-Скорректировать nameserver 192.168.100.1
+Скорректировать nameserver ${devices.hqRtr.interfaces.hqCli.ip}
 domain au-team.irpo
 systemctl restart network
 nmtui
@@ -445,7 +445,7 @@ nmtui
 
 HQ-RTR
 vim /etc/net/ifaces/ens18/resolv.conf
-Скорректировать nameserver 192.168.100.1
+Скорректировать nameserver ${devices.hqRtr.interfaces.hqCli.ip}
 domain au-team.irpo
 systemctl restart network
 nmtui
