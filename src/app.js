@@ -74,7 +74,7 @@ const app = () => {
 
   // @ts-ignore
   document.querySelector('#network-form button').addEventListener('click', () => {
-    const networkData = getNetworkData(networks);
+    const networkData = getNetworkData();
     const newDevices = calculateNewDevices(initialDevices, networkData);
     console.log(newDevices);
     state.devices = newDevices;
