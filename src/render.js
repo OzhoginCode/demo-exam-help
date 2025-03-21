@@ -55,7 +55,6 @@ const renderTable = (elements, { devices }) => {
 };
 
 const renderText = (elements, state) => {
-  // @ts-ignore
   const text = generateText(state);
   elements.textContainer.innerHTML = text;
   document.querySelectorAll('code').forEach((code) => {

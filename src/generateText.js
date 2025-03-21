@@ -1,6 +1,6 @@
 /* eslint-disable no-tabs */
 
-export default (devices) => `
+export default ({ devices }) => `
 <p>Запуск консоли ISP</p>
 <p>login root</p>
 <p>Password toor</p>
