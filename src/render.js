@@ -58,17 +58,17 @@ const renderText = (elements, state) => {
   // @ts-ignore
   const text = generateText(state);
 
-  const textEl = document.createElement('div');
-  const textChunks = text.split('\n');
+  // const textEl = document.createElement('div');
+  // const textChunks = text.split('\n');
 
-  textChunks.forEach((pText) => {
-    const p = document.createElement('p');
-    p.innerHTML = pText || '&nbsp;';
-    textEl.appendChild(p);
-  });
+  // textChunks.forEach((pText) => {
+  //   const p = document.createElement('p');
+  //   p.innerHTML = pText || '&nbsp;';
+  //   textEl.appendChild(p);
+  // });
 
-  elements.textContainer.innerHTML = '';
-  elements.textContainer.appendChild(textEl);
+  elements.textContainer.innerHTML = text;
+  // elements.textContainer.appendChild(textEl);
 };
 
 // eslint-disable-next-line no-unused-vars
