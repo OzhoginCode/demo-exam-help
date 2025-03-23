@@ -89,6 +89,7 @@ export default ({ devices }) => `
 <p>редактируем 1 соединение ens19</p>
 <p>имя профиля ставим BR-SRV</p>
 <p>ip <code>${devices.brRtr.interfaces.brSrv.ip}/${devices.brRtr.interfaces.brSrv.mask}</code></p>
+<p>перезагружаем соединение BR-SRV</p>
 <br>
 <p>Запуск консоли BR-SRV</p>
 <p><code>hostnamectl hostname BR-SRV.au-team.irpo ; exec bash</code></p>
@@ -153,25 +154,14 @@ mkdir /etc/net/ifaces/vlan999
 cp /etc/net/ifaces/ens18/options /etc/net/ifaces/vlan100/options
 cp /etc/net/ifaces/ens18/options /etc/net/ifaces/vlan200/options
 cp /etc/net/ifaces/ens18/options /etc/net/ifaces/vlan999/options
-echo '${devices.hqRtr.interfaces.hqCli.ip}/${devices.hqRtr.interfaces.hqCli.mask}' >> /etc/net/ifaces/vlan100/ipv4address
-echo '${devices.hqRtr.interfaces.hqSrv.ip}/${devices.hqRtr.interfaces.hqSrv.mask}' >> /etc/net/ifaces/vlan200/ipv4address
+echo '${devices.hqRtr.interfaces.hqSrv.ip}/${devices.hqRtr.interfaces.hqSrv.mask}' >> /etc/net/ifaces/vlan100/ipv4address
+echo '${devices.hqRtr.interfaces.hqCli.ip}/${devices.hqRtr.interfaces.hqCli.mask}' >> /etc/net/ifaces/vlan200/ipv4address
 echo '${devices.hqRtr.interfaces.vlan999.ip}/${devices.hqRtr.interfaces.vlan999.mask}' >> /etc/net/ifaces/vlan999/ipv4address
 systemctl restart network
 ip -br a</code></pre>
 <br>
-<p>Запуск консоли BR-SRV</p>
-<p><code>hostnamectl hostname BR-SRV.au-team.irpo ; exec bash</code></p>
-<p>Указываем статичный ipv4 адрес для ${devices.brSrv.interfaces.brRtr.name}</p>
-<p><code>sed -i 's/dhcp4/static/g; s/dhcp/static/g' /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/options</code></p>
-<p>Настраиваем IP-адрес</p>
-<p><code>echo '${devices.brSrv.interfaces.brRtr.ip}/${devices.brSrv.interfaces.brRtr.mask}' > /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/ipv4address</code></p>
-<p>Настраиваем шлюз</p>
-<p><code>echo 'default via ${devices.brRtr.interfaces.brSrv.ip}' > /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/ipv4route</code></p>
-<p>Указываем DNS</p>
-<p><code>echo 'nameserver 8.8.8.8' > /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/resolv.conf</code></p>
-<p><code>systemctl restart network</code></p>
-<br>
 <p>Настройка статичного ip на HQ-CLI</p>
+<p><code>hostnamectl hostname HQ-CLI.au-team.irpo ; exec bash</code></p>
 <details>
   <summary>Можно не настраивать если у нас есть dhcp</summary>
   <p>Пароль <code>resu</code></p>
@@ -188,7 +178,7 @@ ip -br a</code></pre>
   <p><code>echo 'nameserver 8.8.8.8' > /etc/net/ifaces/${devices.hqCli.interfaces.hqRtr.name}/resolv.conf</code></p>
   <p><code>systemctl restart network</code></p>
   <p><code>ip -br a</code></p>
-  <p><code>ping ${devices.hqRtr.interfaces.hqSrv.ip}</code></p>
+  <p><code>ping ${devices.hqCli.interfaces.hqRtr.ip}</code></p>
 </details>
 <br>
 <h3>Задание 5</h3>
@@ -264,8 +254,8 @@ ip -br a</code></pre>
 <p><code>router ospf</code></p>
 <p><code>passive-interface default</code></p>
 <p><code>network ${devices.hqRtr.interfaces.brRtr.netAddress}/${devices.hqRtr.interfaces.brRtr.mask} area 0</code></p>
-<p><code>network ${devices.hqRtr.interfaces.hqCli.netAddress}/${devices.hqRtr.interfaces.hqCli.mask} area 0</code></p>
 <p><code>network ${devices.hqRtr.interfaces.hqSrv.netAddress}/${devices.hqRtr.interfaces.hqSrv.mask} area 0</code></p>
+<p><code>network ${devices.hqRtr.interfaces.hqCli.netAddress}/${devices.hqRtr.interfaces.hqCli.mask} area 0</code></p>
 <p><code>network ${devices.hqRtr.interfaces.vlan999.netAddress}/${devices.hqRtr.interfaces.vlan999.mask} area 0</code></p>
 <p><code>ex</code></p>
 <p><code>int gre1</code></p>
@@ -308,18 +298,18 @@ ip -br a</code></pre>
 <p>}</p>
 <p>выбрать начало “y” и в конце “2” “p”, но можно руками</p>
 <br>
-<p>zone ${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa {</p>
-<p>	primary ${devices.hqSrv.interfaces.hqRtr.ip}</p>
-<p>}</p>
-<br>
 <p>zone ${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa {</p>
 <p>	primary ${devices.hqSrv.interfaces.hqRtr.ip}</p>
 <p>}</p>
 <br>
+<p>zone ${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa {</p>
+<p>	primary ${devices.hqSrv.interfaces.hqRtr.ip}</p>
+<p>}</p>
+<br>
 <p>меняем строки:</p>
-<p>subnet ${devices.hqRtr.interfaces.hqSrv.netAddress} netmask ${cidrToMask(devices.hqRtr.interfaces.hqSrv.mask)} {</p>
+<p>subnet ${devices.hqRtr.interfaces.hqCli.netAddress} netmask ${cidrToMask(devices.hqRtr.interfaces.hqCli.mask)} {</p>
 <p>	range ${devices.hqCli.interfaces.hqRtr.ip} ${getRangeFor3(devices.hqCli.interfaces.hqRtr.ip)};</p>
-<p>	option routers ${devices.hqRtr.interfaces.hqSrv.ip};</p>
+<p>	option routers ${devices.hqRtr.interfaces.hqCli.ip};</p>
 <br>
 <p><code>systemctl restart dhcpd</code></p>
 <p><code>systemctl enable dhcpd</code></p>
@@ -346,12 +336,12 @@ ip -br a</code></pre>
 <p>file “au-team.irpo”;</p>
 <p>allow-update { any; };</p>
 <p>}</p>
-<p>zone ${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa {</p>
+<p>zone ${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa {</p>
 <p>	type master;</p>
 <p>	file “100.db”;</p>
 <p>allow-update { any; };</p>
 <p>}</p>
-<p>zone ${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa {</p>
+<p>zone ${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa {</p>
 <p>type master;	</p>
 <p>	file “200.db”;</p>
 <p>allow-update { any; };</p>
@@ -361,8 +351,8 @@ ip -br a</code></pre>
 <p><code>cp zone/127.in-addr.arpa zone/100.db</code></p>
 <p><code>vim zone/100.db</code></p>
 <p>Убираем лишнее и пишем основные моменты:</p>
-<p>0	IN	SOA	${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa. root.${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa. (...)</p>
-<p>	IN	NS	${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa.</p>
+<p>0	IN	SOA	${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa. root.${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa. (...)</p>
+<p>	IN	NS	${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa.</p>
 <p>	IN	A	${devices.hqSrv.interfaces.hqRtr.ip}</p>
 <p>2	IN	PTR	hq-srv.au-team.irpo</p>
 <p>1	IN	PTR	hq-rtr.au-team.irpo</p>
@@ -370,8 +360,8 @@ ip -br a</code></pre>
 <p><code>cp zone/100.db zone/200.db</code></p>
 <p><code>vim zone/200.db</code></p>
 <p>Убираем лишнее и пишем основные моменты:</p>
-<p>0	IN	SOA	${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa. root.${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa. (...)</p>
-<p>	IN	NS	${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa.</p>
+<p>0	IN	SOA	${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa. root.${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa. (...)</p>
+<p>	IN	NS	${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa.</p>
 <p>	IN	A	${devices.hqSrv.interfaces.hqRtr.ip}</p>
 <p>2	IN	PTR	hq-cli.au-team.irpo</p>
 <p>1	IN	PTR	hq-rtr.au-team.irpo</p>
@@ -381,10 +371,10 @@ ip -br a</code></pre>
 <p>0	IN	SOA	hq-srv.au-team.irpo. root.au-team.irpo. (...)</p>
 <p>	IN	NS	hq-srv.au-team.irpo.</p>
 <p>	IN	A	${devices.hqSrv.interfaces.hqRtr.ip}</p>
-<p>hq-rtr	IN	A	${devices.hqRtr.interfaces.hqCli.ip}</p>
+<p>hq-rtr	IN	A	${devices.hqRtr.interfaces.hqSrv.ip}</p>
 <p>br-rtr	IN	A	${devices.brRtr.interfaces.brSrv.ip}</p>
 <p>hq-srv	IN	A	${devices.hqSrv.interfaces.hqRtr.ip}</p>
-<p>hq-cli	IN	A	${devices.hqSrv.interfaces.hqRtr.ip}</p>
+<p>hq-cli	IN	A	${devices.hqCli.interfaces.hqRtr.ip}</p>
 <p>br-srv	IN	A	${devices.brSrv.interfaces.brRtr.ip}</p>
 <p>wiki	IN	CNAME	hq-rtr.au-team.irpo.</p>
 <p>moodle	IN	CNAME	hq-rtr.au-team.irpo.</p>
@@ -451,7 +441,7 @@ ip -br a</code></pre>
 <p><code>chmod +x /opt/smdscripts/import.sh</code></p>
 <p><code>samba-tool group create hq</code></p>
 <p><code>./import.sh</code></p>
-<p><code>samba-tool dns add br-srv.au-team.irpo au-team.irpo hq-rtr A ${devices.hqRtr.interfaces.hqCli.ip} -U Administrator</code></p>
+<p><code>samba-tool dns add br-srv.au-team.irpo au-team.irpo hq-rtr A ${devices.hqRtr.interfaces.hqSrv.ip} -U Administrator</code></p>
 <p>пароль P@$$word</p>
 <p><code>samba-tool dns add br-srv.au-team.irpo au-team.irpo wiki CNAME hq-rtr.au-team.irpo -U Administrator</code></p>
 <p>пароль P@$$word</p>
@@ -463,8 +453,8 @@ ip -br a</code></pre>
 <p>добавляем server</p>
 <p>${devices.hqRtr.interfaces.brRtr.ip}</p>
 <p>allow ${devices.brRtr.interfaces.brSrv.netAddress}/${devices.brRtr.interfaces.brSrv.mask}</p>
-<p>allow ${devices.hqRtr.interfaces.hqCli.netAddress}/${devices.hqRtr.interfaces.hqCli.mask}</p>
 <p>allow ${devices.hqRtr.interfaces.hqSrv.netAddress}/${devices.hqRtr.interfaces.hqSrv.mask}</p>
+<p>allow ${devices.hqRtr.interfaces.hqCli.netAddress}/${devices.hqRtr.interfaces.hqCli.mask}</p>
 <p>local stratum 5</p>
 <p>сохраняем</p>
 <p><code>systemctl restart chronyd.service</code></p>
@@ -523,14 +513,14 @@ ip -br a</code></pre>
 <p>BR-SRV</p>
 <p><code>apt-get install -y ansible</code></p>
 <p>одной командой:</p>
-<p><code>echo -e "[all]\\nhq-srv ansible_host=${devices.hqSrv.interfaces.hqRtr.ip} ansible_connection=local\\nhq-cli ansible_host=${devices.hqCli.interfaces.hqRtr.ip} ansible_connection=local\\nhq-rtr ansible_host=${devices.hqRtr.interfaces.hqCli.ip} ansible_connection=local\\nbr-srv ansible_host=${devices.brSrv.interfaces.brRtr.ip} ansible_connection=local" | sudo tee /etc/ansible/hosts > /dev/null</code></p>
+<p><code>echo -e "[all]\\nhq-srv ansible_host=${devices.hqSrv.interfaces.hqRtr.ip} ansible_connection=local\\nhq-cli ansible_host=${devices.hqCli.interfaces.hqRtr.ip} ansible_connection=local\\nhq-rtr ansible_host=${devices.hqRtr.interfaces.hqSrv.ip} ansible_connection=local\\nbr-rtr ansible_host=${devices.brRtr.interfaces.brSrv.ip} ansible_connection=local" | sudo tee /etc/ansible/hosts > /dev/null</code></p>
 <p>или</p>
 <p><code>vim /etc/ansible/hosts</code></p>
 <p><code>[all]</code></p>
 <p><code>hq-srv ansible_host=${devices.hqSrv.interfaces.hqRtr.ip} ansible_connection=local</code></p>
 <p><code>hq-cli ansible_host=${devices.hqCli.interfaces.hqRtr.ip} ansible_connection=local</code></p>
-<p><code>hq-rtr ansible_host=${devices.hqRtr.interfaces.hqCli.ip} ansible_connection=local</code></p>
-<p><code>br-srv ansible_host=${devices.brSrv.interfaces.brRtr.ip} ansible_connection=local</code></p>
+<p><code>hq-rtr ansible_host=${devices.hqRtr.interfaces.hqSrv.ip} ansible_connection=local</code></p>
+<p><code>br-rtr ansible_host=${devices.brRtr.interfaces.brSrv.ip} ansible_connection=local</code></p>
 <p>проверка</p>
 <p><code>ansible all -m ping</code></p>
 <br>
