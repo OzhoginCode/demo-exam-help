@@ -451,12 +451,12 @@ ip -br a</code></pre>
 <p><code>chmod +x /opt/smdscripts/import.sh</code></p>
 <p><code>samba-tool group create hq</code></p>
 <p><code>./import.sh</code></p>
-<p><code>samba-tool dns add br-srv.au-tram.irpo au-team.irpo hq-rtr A ${devices.hqRtr.interfaces.hqCli.ip} -U Administrator</code></p>
+<p><code>samba-tool dns add br-srv.au-team.irpo au-team.irpo hq-rtr A ${devices.hqRtr.interfaces.hqCli.ip} -U Administrator</code></p>
 <p>пароль P@$$word</p>
-<p><code>samba-tool dns add br-srv.au-tram.irpo au-team.irpo wiki CNAME hq-rtr.au-team.irpo -U Administrator</code></p>
+<p><code>samba-tool dns add br-srv.au-team.irpo au-team.irpo wiki CNAME hq-rtr.au-team.irpo -U Administrator</code></p>
 <p>пароль P@$$word</p>
-<p><code>samba-tool dns add br-srv.au-tram.irpo au-team.irpo moodle CNAME hq-rtr.au-team.irpo -U Administrator</code></p>
-<p>>пароль P@$$word</p>
+<p><code>samba-tool dns add br-srv.au-team.irpo au-team.irpo moodle CNAME hq-rtr.au-team.irpo -U Administrator</code></p>
+<p>пароль P@$$word</p>
 <br>
 <p>HQ-RTR</p>
 <p><code>vim /etc/chrony.conf</code></p>
