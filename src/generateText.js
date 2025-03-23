@@ -1,5 +1,11 @@
 /* eslint-disable no-tabs */
 
+const getReverseZone = (addr) => addr
+  .split('.')
+  .slice(0, 3)
+  .reverse()
+  .join('.');
+
 export default ({ devices }) => `
 <p>Запуск ISP</p>
 <p>login root</p>
@@ -284,17 +290,17 @@ ip -br a</code></pre>
 <p>}</p>
 <p>выбрать начало “y” и в конце “2” “p”, но можно руками</p>
 <br>
-<p>внимание с IP!!! Нет автоподстановки</p>
-<p>zone 100.168.192.in-addr.arpa {</p>
+<p>zone ${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa {</p>
 <p>	primary ${devices.hqSrv.interfaces.hqRtr.ip}</p>
 <p>}</p>
 <br>
-<p>zone 200.168.192.in-addr.arpa {</p>
+<p>zone ${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa {</p>
 <p>	primary ${devices.hqSrv.interfaces.hqRtr.ip}</p>
 <p>}</p>
 <br>
+<p>внимание со вторым IP!!! Нет автоподстановки</p>
 <p>меняем строки:</p>
-<p>subnet 192.168.200.0 netmask 255.255.255.240 {</p>
+<p>subnet ${devices.hqRtr.interfaces.hqSrv.netAddress} netmask 255.255.255.240 {</p>
 <p>	range ${devices.hqCli.interfaces.hqRtr.ip} 192.168.200.5;</p>
 <p>	option routers ${devices.hqRtr.interfaces.hqSrv.ip};</p>
 <br>
@@ -323,13 +329,12 @@ ip -br a</code></pre>
 <p>file “au-team.irpo”;</p>
 <p>allow-update { any; };</p>
 <p>}</p>
-<p>внимание с IP!!! Нет автоподстановки</p>
-<p>zone 100.168.192.in-addr.arpa {</p>
+<p>zone ${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa {</p>
 <p>	type master;</p>
 <p>	file “100.db”;</p>
 <p>allow-update { any; };</p>
 <p>}</p>
-<p>zone 200.168.192.in-addr.arpa {</p>
+<p>zone ${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa {</p>
 <p>type master;	</p>
 <p>	file “200.db”;</p>
 <p>allow-update { any; };</p>
@@ -339,8 +344,8 @@ ip -br a</code></pre>
 <p><code>cp zone/127.in-addr.arpa zone/100.db</code></p>
 <p><code>vim zone/100.db</code></p>
 <p>Убираем лишнее и пишем основные моменты:</p>
-<p>0	IN	SOA	100.168.192.in-addr.apra. root.100.168.192.in-addr.apra. (...)</p>
-<p>	IN	NS	100.168.192.in-addr.apra.</p>
+<p>0	IN	SOA	${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.apra. root.${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.apra. (...)</p>
+<p>	IN	NS	${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.apra.</p>
 <p>	IN	A	${devices.hqSrv.interfaces.hqRtr.ip}</p>
 <p>10	IN	PTR	hq-srv.au-team.irpo</p>
 <p>1	IN	PTR	hq-rtr.au-team.irpo</p>
@@ -348,15 +353,15 @@ ip -br a</code></pre>
 <p><code>cp zone/100.db zone/200.db</code></p>
 <p><code>vim zone/200.db</code></p>
 <p>Убираем лишнее и пишем основные моменты:</p>
-<p>0	IN	SOA	200.168.192.in-addr.apra. root.200.168.192.in-addr.apra. (...)</p>
-<p>	IN	NS	200.168.192.in-addr.apra.</p>
+<p>0	IN	SOA	${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.apra. root.${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.apra. (...)</p>
+<p>	IN	NS	${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.apra.</p>
 <p>	IN	A	${devices.hqSrv.interfaces.hqRtr.ip}</p>
 <p>10	IN	PTR	hq-cli.au-team.irpo</p>
 <p>1	IN	PTR	hq-rtr.au-team.irpo</p>
 <p>сохраняем</p>
 <p><code>vim zone/au-team.db</code></p>
 <p>Убираем лишнее и пишем основные моменты:</p>
-<p>0	IN	SOA	hq-srv.au-team.irpo. root.au-taem.irpo. (...)</p>
+<p>0	IN	SOA	hq-srv.au-team.irpo. root.au-team.irpo. (...)</p>
 <p>	IN	NS	hq-srv.au-team.irpo.</p>
 <p>	IN	A	${devices.hqSrv.interfaces.hqRtr.ip}</p>
 <p>hq-rtr	IN	A	${devices.hqRtr.interfaces.hqCli.ip}</p>
@@ -435,7 +440,7 @@ ip -br a</code></pre>
 <p><code>chmod +x /opt/smdscripts/import.sh</code></p>
 <p><code>samba-tool group create hq</code></p>
 <p><code>./import.sh</code></p>
-<p><code>samba-tool dns add br-srv.au-tram.irpo au-team.irpo hq-rtr A 192.168.100.1 -U Administrator</code></p>
+<p><code>samba-tool dns add br-srv.au-tram.irpo au-team.irpo hq-rtr A ${devices.hqRtr.interfaces.hqCli.ip} -U Administrator</code></p>
 <p>пароль P@$$word</p>
 <p><code>samba-tool dns add br-srv.au-tram.irpo au-team.irpo wiki CNAME hq-rtr.au-team.irpo -U Administrator</code></p>
 <p>пароль P@$$word</p>
@@ -445,10 +450,10 @@ ip -br a</code></pre>
 <p>HQ-RTR</p>
 <p><code>vim /etc/chrony.conf</code></p>
 <p>добавляем server</p>
-<p>10.5.5.1</p>
-<p>allow 192.168.0.0/28</p>
-<p>allow 192.168.100.0/28</p>
-<p>allow 192.168.200.0/28</p>
+<p>${devices.hqRtr.interfaces.brRtr.ip}</p>
+<p>allow ${devices.brRtr.interfaces.brSrv.netAddress}/${devices.brRtr.interfaces.brSrv.mask}</p>
+<p>allow ${devices.hqRtr.interfaces.hqCli.netAddress}/${devices.hqRtr.interfaces.hqCli.mask}</p>
+<p>allow ${devices.hqRtr.interfaces.hqSrv.netAddress}/${devices.hqRtr.interfaces.hqSrv.mask}</p>
 <p>local stratum 5</p>
 <p>сохраняем</p>
 <p><code>systemctl restart chronyd.service</code></p>
@@ -483,7 +488,7 @@ ip -br a</code></pre>
 <p><code>apt-get install -y nfs-server</code></p>
 <p><code>mkdir -p /raid5/nfs</code></p>
 <p><code>vim /etc/exports</code></p>
-<p>добавляем второй строкой /raid5/nfs 192.168.200.2(rw,sync,no_subtree_check)</p>
+<p>добавляем второй строкой /raid5/nfs ${devices.hqSrv.interfaces.hqRtr.ip}(rw,sync,no_subtree_check)</p>
 <p>сохраняем</p>
 <p><code>exportfs -a</code></p>
 <p><code>systemctl restart nfs-server.service</code></p>
@@ -524,10 +529,4 @@ ip -br a</code></pre>
 <p><code>apt-get update</code></p>
 <p><code>apt-get install -y yandex-browser-stable</code></p>
 <p><code>reboot</code></p>
-
-
-
-
-
-
 `;
