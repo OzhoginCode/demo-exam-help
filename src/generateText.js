@@ -6,6 +6,23 @@ const getReverseZone = (addr) => addr
   .reverse()
   .join('.');
 
+const cidrToMask = (cidr) => {
+  const mask = Array(4).fill(0).map((_, i) => {
+    const bits = Math.min(8, Math.max(0, cidr - i * 8));
+    return 256 - 2 ** (8 - bits);
+  });
+
+  return mask.join('.');
+};
+
+const getRangeFor3 = (ip) => {
+  const parts = ip.split('.').map(Number);
+  const lastOctet = parts[3] + 3;
+
+  parts[3] = lastOctet;
+  return parts.join('.');
+};
+
 export default ({ devices }) => `
 <p>Запуск ISP</p>
 <p>login root</p>
@@ -105,7 +122,7 @@ export default ({ devices }) => `
 <p><code>echo 'nameserver 8.8.8.8' > /etc/net/ifaces/${devices.hqSrv.interfaces.hqRtr.name}/resolv.conf</code></p>
 <p><code>systemctl restart network</code></p>
 <br>
-<p>Задание 3</p>
+<h3>Задание 3</h3>
 <p>HQ-SRV и BR-SRV</p>
 <p><code>adduser sshuser</code></p>
 <p><code>passwd sshuser</code></p>
@@ -129,7 +146,7 @@ export default ({ devices }) => `
 <p><code>vim /etc/group</code></p>
 <p>дополнить строку wheel пользователем net_admin</p>
 <br>
-<p>Задание 4</p>
+<h3>Задание 4</h3>
 <p>Запуск консоли HQ-RTR</p>
 <pre><code>apt-get install -y openvswitch
 systemctl enable --now openvswitch
@@ -150,30 +167,39 @@ echo '${devices.hqRtr.interfaces.vlan999.ip}/${devices.hqRtr.interfaces.vlan999.
 systemctl restart network
 ip -br a</code></pre>
 <br>
+<p>Запуск консоли BR-SRV</p>
+<p><code>hostnamectl hostname BR-SRV.au-team.irpo</code></p>
+<p>Указываем статичный ipv4 адрес для ${devices.brSrv.interfaces.brRtr.name}</p>
+<p><code>sed -i 's/dhcp4/static/g; s/dhcp/static/g' /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/options</code></p>
+<p>Настраиваем IP-адрес</p>
+<p><code>echo '${devices.brSrv.interfaces.brRtr.ip}/${devices.brSrv.interfaces.brRtr.mask}' > /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/ipv4address</code></p>
+<p>Настраиваем шлюз</p>
+<p><code>echo 'default via ${devices.brRtr.interfaces.brSrv.ip}' > /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/ipv4route</code></p>
+<p>Указываем DNS</p>
+<p><code>echo 'nameserver 8.8.8.8' > /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/resolv.conf</code></p>
+<p><code>systemctl restart network</code></p>
+<br>
 <p>Настройка статичного ip на HQ-CLI</p>
 <details>
   <summary>Можно не настраивать если у нас есть dhcp</summary>
-  <p>Пароль resu</p>
+  <p>Пароль <code>resu</code></p>
   <p>Открыть терминал</p>
-  <p>su -</p>
-  <p></p>
-  <p>пароль toor</p>
-  <p>Открываем конфигурацию ens18 в vim vim /etc/net/ifaces/ens18/options</p>
-  <p>BOOTPROTO=static</p>
-  <p>SYSTEMD_BOOTPROTO=static</p>
-  <p>Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4address</p>
-  <p>${devices.hqCli.interfaces.hqRtr.ip}/${devices.hqCli.interfaces.hqRtr.mask}</p>
-  <p>Создаем файл конфигурации vim /etc/net/ifaces/ens18/ipv4route</p>
-  <p>Вводим строку default via ${devices.hqRtr.interfaces.hqSrv.ip}</p>
-  <p>Создаем файл конфигурации vim /etc/net/ifaces/ens18/resolv.conf</p>
-  <p>nameserver 8.8.8.8</p>
-  <p>systemctl restart network</p>
-  <p>systemctl restart NetworkManager</p>
-  <p>ip -br a</p>
-  <p>ping ${devices.hqRtr.interfaces.hqSrv.ip}</p>
+  <p><code>su -</code></p>
+  <p>пароль <code>toor</code></p>
+  <p>Указываем статичный ipv4 адрес для ${devices.brSrv.interfaces.brRtr.name}</p>
+  <p><code>sed -i 's/dhcp4/static/g; s/dhcp/static/g' /etc/net/ifaces/${devices.hqCli.interfaces.hqRtr.name}/options</code></p>
+  <p>Настраиваем IP-адрес</p>
+  <p><code>echo '${devices.hqCli.interfaces.hqRtr.ip}/${devices.hqCli.interfaces.hqRtr.mask}' > /etc/net/ifaces/${devices.hqCli.interfaces.hqRtr.name}/ipv4address</code></p>
+  <p>Настраиваем шлюз</p>
+  <p><code>echo 'default via ${devices.hqCli.interfaces.hqRtr.ip}' > /etc/net/ifaces/${devices.hqCli.interfaces.hqRtr.name}/ipv4route</code></p>
+  <p>Указываем DNS</p>
+  <p><code>echo 'nameserver 8.8.8.8' > /etc/net/ifaces/${devices.hqCli.interfaces.hqRtr.name}/resolv.conf</code></p>
+  <p><code>systemctl restart network</code></p>
+  <p><code>ip -br a</code></p>
+  <p><code>ping ${devices.hqRtr.interfaces.hqSrv.ip}</code></p>
 </details>
 <br>
-<p>Задание 5</p>
+<h3>Задание 5</h3>
 <p>HQ-SRV и BR-SRV</p>
 <p><code>vim /etc/openssh/sshd_config</code></p>
 <p>правим строку на <code>Port 2024</code></p>
@@ -182,9 +208,9 @@ ip -br a</code></pre>
 <p><code>MaxAuthTries 2</code></p>
 <p><code>Banner /etc/ban</code></p>
 <p><code>echo 'Authorized access only' > /etc/ban</code></p>
-<p>systemctl restart sshd</p>
+<p><code>systemctl restart sshd</code></p>
 <br>
-<p>Задание 6</p>
+<h3>Задание 6</h3>
 <p>BR-RTR</p>
 <p><code>nmtui</code></p>
 <p>добавляем интерфейс <code>ip tunnel</code></p>
@@ -200,7 +226,7 @@ ip -br a</code></pre>
 <br>
 <p>Запуск HQ-RTR</code></p>
 <p>смотрим сеть <code>ip -br a</code></p>
-<p>nmtui</p>
+<p><code>nmtui</code></p>
 <p>добавляем интерфейс <code>ip tunnel</code></p>
 <p>Имя профиля: <code>gre1</code></p>
 <p>Device: <code>gre1</code></p>
@@ -212,11 +238,11 @@ ip -br a</code></pre>
 <p>Addresses: <code>${devices.hqRtr.interfaces.brRtr.ip}/${devices.hqRtr.interfaces.brRtr.mask}</code></p>
 <p>проверяем <code>ip -br a</code></p>
 <br>
-<p>Задание 7</p>
+<h3>Задание 7</h3>
 <p>BR-RTR</p>
 <p><code>apt-get install -y frr</code></p>
 <p><code>vim /etc/frr/daemons</code></p>
-<p>исправить строку ospfd=yes</p>
+<p>исправить строку <code>ospfd=yes</code></p>
 <p><code>systemctl restart frr</code></p>
 <p><code>systemctl enable --now frr</code></p>
 <p><code>vtysh</code></p>
@@ -238,7 +264,7 @@ ip -br a</code></pre>
 <p>HQ-RTR</p>
 <p><code>apt-get install -y frr</code></p>
 <p><code>vim /etc/frr/daemons</code></p>
-<p>исправить строку ospfd=yes</p>
+<p>исправить строку <code>ospfd=yes</code></p>
 <p><code>systemctl restart frr</code></p>
 <p><code>systemctl enable --now frr</code></p>
 <p><code>vtysh</code></p>
@@ -261,9 +287,9 @@ ip -br a</code></pre>
 <p>настроим ttl</p>
 <p>HQ-RTR и BR-RTR</p>
 <p><code>vim /etc/NetworkManager/system-connections/gre1.nmconnection</code></p>
-<p>ttl=64</p>
+<p><code>ttl=64</code></p>
 <br>
-<p>Задание 8</p>
+<h3>Задание 8</h3>
 <p>HQ-RTR</p>
 <p><code>iptables -t nat -j MASQUERADE -A POSTROUTING</code></p>
 <p><code>iptables-save > /etc/sysconfig/iptables</code></p>
@@ -273,18 +299,18 @@ ip -br a</code></pre>
 <p><code>iptables-save > /etc/sysconfig/iptables</code></p>
 <p><code>systemctl enable --now iptables</code></p>
 <br>
-<p>Задание 9</p>
+<h3>Задание 9</h3>
 <p>HQ-RTR</p>
 <p><code>apt-get install -y dhcp-server</code></p>
 <p><code>vim /etc/sysconfig/dhcpd</code></p>
-<p>DHCPDARCS = vlan200</p>
+<p><code>DHCPDARCS = vlan200</code></p>
 <p><code>cp /etc/dhcp/dhcpd.conf.example /etc/dhcp/dhcpd.conf</code></p>
 <p><code>vim /etc/dhcp/dhcpd.conf</code></p>
-<p>option domain-name “au-team.irpo”;</p>
-<p>option domain-name-servers ${devices.hqSrv.interfaces.hqRtr.ip};</p>
+<p><code>option domain-name “au-team.irpo”;</code></p>
+<p><code>option domain-name-servers ${devices.hqSrv.interfaces.hqRtr.ip};</code></p>
 <p>добавить после</p>
-<p>ddns-update-style interim;</p>
-<p>update-static-leases on;</p>
+<p><code>ddns-update-style interim;</code></p>
+<p><code>update-static-leases on;</code></p>
 <p>zone au-team.irpo {</p>
 <p>	primary ${devices.hqSrv.interfaces.hqRtr.ip}</p>
 <p>}</p>
@@ -300,8 +326,8 @@ ip -br a</code></pre>
 <br>
 <p>внимание со вторым IP!!! Нет автоподстановки</p>
 <p>меняем строки:</p>
-<p>subnet ${devices.hqRtr.interfaces.hqSrv.netAddress} netmask 255.255.255.240 {</p>
-<p>	range ${devices.hqCli.interfaces.hqRtr.ip} 192.168.200.5;</p>
+<p>subnet ${devices.hqRtr.interfaces.hqSrv.netAddress} netmask ${cidrToMask(devices.hqRtr.interfaces.hqSrv.mask)} {</p>
+<p>	range ${devices.hqCli.interfaces.hqRtr.ip} ${getRangeFor3(devices.hqCli.interfaces.hqRtr.ip)};</p>
 <p>	option routers ${devices.hqRtr.interfaces.hqSrv.ip};</p>
 <br>
 <p><code>systemctl restart dhcpd</code></p>
@@ -311,7 +337,7 @@ ip -br a</code></pre>
 <p>проверка работы dhcp</p>
 <p><code>ip -br a</code></p>
 <br>
-<p>Задание 10</p>
+<h3>Задание 10</h3>
 <p>HQ-SRV</p>
 <p><code>apt-get update</code></p>
 <p><code>apt-get install -y bind</code></p>
@@ -399,12 +425,12 @@ ip -br a</code></pre>
 <p>nmtui</p>
 <p>перезапустить активные соединения ens</p>
 <br>
-<p>Задание 11</p>
+<h3>Задание 11</h3>
 <p>HQ-SRV, BR-SRV, HQ-RTR, BR-RTR, HQ-CLI</p>
 <p><code>timedatectl set-timezone Europe/Moscow</code></p>
 <br>
-<p>Модуль № 2</p>
-<p>Задание 1</p>
+<h2>Модуль № 2</h2>
+<h3>Задание 1</h3>
 <p>BR-SRV</p>
 <p><code>apt-get update -y</code></p>
 <p><code>apt-get install -y task-samba-dc</code></p>
@@ -472,7 +498,7 @@ ip -br a</code></pre>
 <p>проверяем через терминал</p>
 <p><code>wbinfo --ping-dc</code></p>
 <br>
-<p>Задание 2</p>
+<h3>Задание 2</h3>
 <p>HQ-SRV</p>
 <p><code>mdadm --create --verbose /dev/md0 --level =5 --raid-devices=3 /dev/sdc /dev/sdb /dev/sdd</code></p>
 <p><code>mdadm --detail --scan I tee -a /etc/mdadm.conf</code></p>
@@ -508,7 +534,7 @@ ip -br a</code></pre>
 <p>проверяем что пространство монтируется mount -a</p>
 <p>ошибок не должно быть</p>
 <br>
-<p>Задание 4</p>
+<h3>Задание 4</h3>
 <p>BR-SRV</p>
 <p><code>apt-get install -y ansible</code></p>
 <p>одной командой:</p>
@@ -523,7 +549,7 @@ ip -br a</code></pre>
 <p>проверка</p>
 <p><code>ansible all -m ping</code></p>
 <br>
-<p>Задание 9</p>
+<h3>Задание 9</h3>
 <p>HQ-CLI</p>
 <p><code>su -</code></p>
 <p><code>apt-get update</code></p>
