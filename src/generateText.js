@@ -193,24 +193,10 @@ ip -br a</code></pre>
 <p><code>systemctl restart sshd</code></p>
 <br>
 <h3>Задание 6</h3>
-<p>BR-RTR</p>
+<p>HQ-RTR</code></p>
 <p><code>nmtui</code></p>
 <p>добавляем интерфейс <code>ip tunnel</code></p>
-<p>Имя профиля: <code>gre1</code></p>
-<p>Device: <code>gre1</code></p>
-<p>Mode: <code>GRE</code></p>
-<p>Parent: <code>ens18</code></p>
-<p>Local ip: <code>${devices.brRtr.interfaces.isp.ip}</code></p>
-<p>Remote ip: <code>${devices.hqRtr.interfaces.isp.ip}</code></p>
-<p>IPv4: <code>manual</code></p>
-<p>Addresses: <code>${devices.brRtr.interfaces.hqRtr.ip}/${devices.brRtr.interfaces.hqRtr.mask}</code></p>
-<p>проверяем <code>ip -br a</code></p>
-<br>
-<p>Запуск HQ-RTR</code></p>
-<p>смотрим сеть <code>ip -br a</code></p>
-<p><code>nmtui</code></p>
-<p>добавляем интерфейс <code>ip tunnel</code></p>
-<p>Имя профиля: <code>gre1</code></p>
+<p>Имя профиля: <code>BR-RTR</code></p>
 <p>Device: <code>gre1</code></p>
 <p>Mode: <code>GRE</code></p>
 <p>Parent: <code>ens18</code></p>
@@ -218,9 +204,47 @@ ip -br a</code></pre>
 <p>Remote ip: <code>${devices.brRtr.interfaces.isp.ip}</code></p>
 <p>IPv4: <code>manual</code></p>
 <p>Addresses: <code>${devices.hqRtr.interfaces.brRtr.ip}/${devices.hqRtr.interfaces.brRtr.mask}</code></p>
-<p>проверяем <code>ip -br a</code></p>
+<p>перезагружаем соединение BR-RTR</p>
+<p>проверяем: <code>ip -br a</code></p>
+<br>
+<p>BR-RTR</p>
+<p><code>nmtui</code></p>
+<p>добавляем интерфейс <code>ip tunnel</code></p>
+<p>Имя профиля: <code>HQ-RTR</code></p>
+<p>Device: <code>gre1</code></p>
+<p>Mode: <code>GRE</code></p>
+<p>Parent: <code>ens18</code></p>
+<p>Local ip: <code>${devices.brRtr.interfaces.isp.ip}</code></p>
+<p>Remote ip: <code>${devices.hqRtr.interfaces.isp.ip}</code></p>
+<p>IPv4: <code>manual</code></p>
+<p>Addresses: <code>${devices.brRtr.interfaces.hqRtr.ip}/${devices.brRtr.interfaces.hqRtr.mask}</code></p>
+<p>перезагружаем соединение HQ-RTR</p>
+<p>проверяем: <code>ip -br a</code></p>
 <br>
 <h3>Задание 7</h3>
+<p>HQ-RTR</p>
+<p><code>apt-get install -y frr</code></p>
+<p><code>vim /etc/frr/daemons</code></p>
+<p>исправить строку <code>ospfd=yes</code></p>
+<p><code>systemctl restart frr</code></p>
+<p><code>systemctl enable --now frr</code></p>
+<p><code>vtysh</code></p>
+<p><code>conf t</code></p>
+<p><code>ip forwarding</code></p>
+<p><code>router ospf</code></p>
+<p><code>network ${devices.hqRtr.interfaces.brRtr.netAddress}/${devices.hqRtr.interfaces.brRtr.mask} area 0</code></p>
+<p><code>network ${devices.hqRtr.interfaces.hqSrv.netAddress}/${devices.hqRtr.interfaces.hqSrv.mask} area 0</code></p>
+<p><code>network ${devices.hqRtr.interfaces.hqCli.netAddress}/${devices.hqRtr.interfaces.hqCli.mask} area 0</code></p>
+<p><code>network ${devices.hqRtr.interfaces.vlan999.netAddress}/${devices.hqRtr.interfaces.vlan999.mask} area 0</code></p>
+<p><code>ex</code></p>
+<p><code>int gre1</code></p>
+<p><code>no ip ospf passive</code></p>
+<p><code>ex</code></p>
+<p><code>ex</code></p>
+<p><code>wr</code></p>
+<p><code>ex</code></p>
+<p><code>reboot</code></p>
+<br>
 <p>BR-RTR</p>
 <p><code>apt-get install -y frr</code></p>
 <p><code>vim /etc/frr/daemons</code></p>
@@ -234,29 +258,6 @@ ip -br a</code></pre>
 <p><code>passive-interface default</code></p>
 <p><code>network ${devices.brRtr.interfaces.hqRtr.netAddress}/${devices.brRtr.interfaces.hqRtr.mask} area 0</code></p>
 <p><code>network ${devices.brRtr.interfaces.brSrv.netAddress}/${devices.brRtr.interfaces.brSrv.mask} area 0</code></p>
-<p><code>ex</code></p>
-<p><code>int gre1</code></p>
-<p><code>no ip ospf passive</code></p>
-<p><code>ex</code></p>
-<p><code>ex</code></p>
-<p><code>wr</code></p>
-<p><code>ex</code></p>
-<p><code>reboot</code></p>
-<br>
-<p>HQ-RTR</p>
-<p><code>apt-get install -y frr</code></p>
-<p><code>vim /etc/frr/daemons</code></p>
-<p>исправить строку <code>ospfd=yes</code></p>
-<p><code>systemctl restart frr</code></p>
-<p><code>systemctl enable --now frr</code></p>
-<p><code>vtysh</code></p>
-<p><code>conf t</code></p>
-<p><code>router ospf</code></p>
-<p><code>passive-interface default</code></p>
-<p><code>network ${devices.hqRtr.interfaces.brRtr.netAddress}/${devices.hqRtr.interfaces.brRtr.mask} area 0</code></p>
-<p><code>network ${devices.hqRtr.interfaces.hqSrv.netAddress}/${devices.hqRtr.interfaces.hqSrv.mask} area 0</code></p>
-<p><code>network ${devices.hqRtr.interfaces.hqCli.netAddress}/${devices.hqRtr.interfaces.hqCli.mask} area 0</code></p>
-<p><code>network ${devices.hqRtr.interfaces.vlan999.netAddress}/${devices.hqRtr.interfaces.vlan999.mask} area 0</code></p>
 <p><code>ex</code></p>
 <p><code>int gre1</code></p>
 <p><code>no ip ospf passive</code></p>
@@ -293,19 +294,33 @@ ip -br a</code></pre>
 <p>добавить после</p>
 <p><code>ddns-update-style interim;</code></p>
 <p><code>update-static-leases on;</code></p>
+<p>КОПИРОВАНИЕ В РАЗРАБОТКЕ, НЕ ЗАБЫТЬ ПРО ТАБЫ!!!</p>
+<p><pre><code>
+zone au-team.irpo {
+&#9;primary ${devices.hqSrv.interfaces.hqRtr.ip};
+}
+
+zone ${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa {
+&#9;primary ${devices.hqSrv.interfaces.hqRtr.ip};
+}
+
+zone ${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa {
+&#9;primary ${devices.hqSrv.interfaces.hqRtr.ip};
+}
+</code></pre></p>
 <p>zone au-team.irpo {</p>
-<p>	primary ${devices.hqSrv.interfaces.hqRtr.ip}</p>
+<p> primary ${devices.hqSrv.interfaces.hqRtr.ip};</p>
 <p>}</p>
-<p>выбрать начало “y” и в конце “2” “p”, но можно руками</p>
 <br>
 <p>zone ${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa {</p>
-<p>	primary ${devices.hqSrv.interfaces.hqRtr.ip}</p>
+<p> primary ${devices.hqSrv.interfaces.hqRtr.ip};</p>
 <p>}</p>
 <br>
 <p>zone ${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa {</p>
-<p>	primary ${devices.hqSrv.interfaces.hqRtr.ip}</p>
+<p> primary ${devices.hqSrv.interfaces.hqRtr.ip};</p>
 <p>}</p>
 <br>
+<p>Подсказка: можно выбрать начало “y” и в конце “2” “p”, но можно руками</p>
 <p>меняем строки:</p>
 <p>subnet ${devices.hqRtr.interfaces.hqCli.netAddress} netmask ${cidrToMask(devices.hqRtr.interfaces.hqCli.mask)} {</p>
 <p>	range ${devices.hqCli.interfaces.hqRtr.ip} ${getRangeFor3(devices.hqCli.interfaces.hqRtr.ip)};</p>
