@@ -25,9 +25,9 @@ const getRangeFor3 = (ip) => {
 
 export default ({ devices }) => `
 <p>Запуск ISP</p>
-<p>login root</p>
-<p>Password toor</p>
-<p><code>hostnamectl hostname ISP</code></p>
+<p>login <code>root</code></p>
+<p>Password <code>toor</code></p>
+<p><code>hostnamectl hostname ISP ; exec bash</code></p>
 <p>Накатываем обновления</p>
 <p><code>apt-get update</code></p>
 <p><code>apt-get install -y NetworkManager-tui iptables</code></p>
@@ -35,20 +35,21 @@ export default ({ devices }) => `
 <p><code>nmtui</code></p>
 <p>настраиваем первый интерфейс</p>
 <p>задаем имя профиля в соответствии с номером оборудования, например HQ-RTR</p>
-<p>выставляем ручной ip для ${devices.isp.interfaces.hqRtr.name}: ${devices.isp.interfaces.hqRtr.ip}/${devices.isp.interfaces.hqRtr.mask}</p>
-<p>аналогично настраиваем ${devices.isp.interfaces.brRtr.name}: ${devices.isp.interfaces.brRtr.ip}/${devices.isp.interfaces.brRtr.mask}</p>
+<p>выставляем ручной ip для ${devices.isp.interfaces.hqRtr.name}: <code>${devices.isp.interfaces.hqRtr.ip}/${devices.isp.interfaces.hqRtr.mask}</code></p>
+<p>аналогично настраиваем ${devices.isp.interfaces.brRtr.name}: <code>${devices.isp.interfaces.brRtr.ip}/${devices.isp.interfaces.brRtr.mask}</code></p>
 <p>проверяем:</p>
 <p><code>ip -br a</code></p>
 <p>настраиваем маршрутизацию</p>
-<p><code>vim /etc/net/sysctl.conf</code></p>
-<p>меняем 0 на 1 в forward</p>
+<p>меняем 0 на 1 в forward:</p>
+<p><code>sed -i 's/^net\\.ipv4\\.ip_forward *= *.*/net.ipv4.ip_forward = 1/' /etc/net/sysctl.conf</code></p>
+<p><code>systemctl restart network</code></p>
 <p>настраиваем nat</p>
 <p><code>iptables -t nat -j MASQUERADE -A POSTROUTING -o ens18</code></p>
 <p><code>iptables-save > /etc/sysconfig/iptables</code></p>
-<p><code>systemctl enable iptables --now # нужно проверить, работает ли эта команда именно на ISP</code></p>
+<p><code>systemctl enable iptables --now</code></p>
 <br>
 <p>Запуск HQ-RTR</p>
-<p><code>hostnamectl hostname HQ-RTR.au-team.irpo</code></p>
+<p><code>hostnamectl hostname HQ-RTR.au-team.irpo ; exec bash</code></p>
 <p>Указываем статичный ipv4 адрес для ${devices.hqRtr.interfaces.isp.name}</p>
 <p><code>sed -i 's/dhcp4/static/g; s/dhcp/static/g' /etc/net/ifaces/${devices.hqRtr.interfaces.isp.name}/options</code></p>
 <p>Настраиваем IP-адрес</p>
@@ -57,16 +58,17 @@ export default ({ devices }) => `
 <p><code>echo 'default via ${devices.isp.interfaces.hqRtr.ip}' > /etc/net/ifaces/${devices.hqRtr.interfaces.isp.name}/ipv4route</code></p>
 <p>Указываем DNS</p>
 <p><code>echo 'nameserver 8.8.8.8' > /etc/net/ifaces/${devices.hqRtr.interfaces.isp.name}/resolv.conf</code></p>
+<p><code>sed -i 's/^net\\.ipv4\\.ip_forward *= *.*/net.ipv4.ip_forward = 1/' /etc/net/sysctl.conf</code></p>
 <p><code>iptables -t nat -j MASQUERADE -A POSTROUTING</code></p>
 <p><code>iptables-save > /etc/sysconfig/iptables</code></p>
 <p><code>systemctl enable iptables --now</code></p>
+<p><code>systemctl restart network</code></p>
 <p>Накатываем обновления <code>apt-get update</code></p>
 <p><code>apt-get install -y NetworkManager-tui</code></p>
 <p><code>systemctl enable --now NetworkManager</code></p>
-<p><code>nmtui</code></p>
 <br>
 <p>Запуск BR-RTR</p>
-<p><code>hostnamectl hostname BR-RTR.au-team.irpo</code></p>
+<p><code>hostnamectl hostname BR-RTR.au-team.irpo ; exec bash</code></p>
 <p>Указываем статичный ipv4 адрес для ${devices.brRtr.interfaces.isp.name}</p>
 <p><code>sed -i 's/dhcp4/static/g; s/dhcp/static/g' /etc/net/ifaces/${devices.brRtr.interfaces.isp.name}/options</code></p>
 <p>Настраиваем IP-адрес</p>
@@ -75,31 +77,21 @@ export default ({ devices }) => `
 <p><code>echo 'default via ${devices.isp.interfaces.brRtr.ip}' > /etc/net/ifaces/${devices.brRtr.interfaces.isp.name}/ipv4route</code></p>
 <p>Указываем DNS</p>
 <p><code>echo 'nameserver 8.8.8.8' > /etc/net/ifaces/${devices.brRtr.interfaces.isp.name}/resolv.conf</code></p>
+<p><code>sed -i 's/^net\\.ipv4\\.ip_forward *= *.*/net.ipv4.ip_forward = 1/' /etc/net/sysctl.conf</code></p>
 <p><code>iptables -t nat -j MASQUERADE -A POSTROUTING</code></p>
 <p><code>iptables-save > /etc/sysconfig/iptables</code></p>
 <p><code>systemctl enable iptables --now</code></p>
+<p><code>systemctl restart network</code></p>
 <p>Накатываем обновления <code>apt-get update</code></p>
 <p><code>apt-get install -y NetworkManager-tui</code></p>
 <p><code>systemctl enable --now NetworkManager</code></p>
-<br>
-<p>Запуск BR-RTR</p>
-<p>создаем папку</p>
-<p><code>mkdir /etc/net/ifaces/ens19</code></p>
-<p>Копируем файл конфигурации</p>
-<p><code>cp /etc/net/ifaces/ens18/options /etc/net/ifaces/ens19/options</code></p>
-<p>редактируем</p>
-<p><code>vim /etc/net/ifaces/ens19/options</code></p>
-<p><code>NM_CONTROLLED=yes</code></p>
-<p>перезапускаем network и NetworkManager</p>
-<p><code>systemctl restart network</code></p>
-<p><code>systemctl restart NetworkManager</code></p>
-<p>запускаем nmtui</p>
+<p>запускаем <code>nmtui</code></p>
 <p>редактируем 1 соединение ens19</p>
 <p>имя профиля ставим BR-SRV</p>
-<p>ip ${devices.brRtr.interfaces.brSrv.ip}/${devices.brRtr.interfaces.brSrv.mask}</p>
+<p>ip <code>${devices.brRtr.interfaces.brSrv.ip}/${devices.brRtr.interfaces.brSrv.mask}</code></p>
 <br>
 <p>Запуск консоли BR-SRV</p>
-<p><code>hostnamectl hostname BR-SRV.au-team.irpo</code></p>
+<p><code>hostnamectl hostname BR-SRV.au-team.irpo ; exec bash</code></p>
 <p>Указываем статичный ipv4 адрес для ${devices.brSrv.interfaces.brRtr.name}</p>
 <p><code>sed -i 's/dhcp4/static/g; s/dhcp/static/g' /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/options</code></p>
 <p>Настраиваем IP-адрес</p>
@@ -111,7 +103,7 @@ export default ({ devices }) => `
 <p><code>systemctl restart network</code></p>
 <br>
 <p>Запуск консоли HQ-SRV</p>
-<p><code>hostnamectl hostname HQ-SRV.au-team.irpo</code></p>
+<p><code>hostnamectl hostname HQ-SRV.au-team.irpo ; exec bash</code></p>
 <p>Указываем статичный ipv4 адрес для ${devices.hqSrv.interfaces.hqRtr.name}</p>
 <p><code>sed -i 's/dhcp4/static/g; s/dhcp/static/g' /etc/net/ifaces/${devices.hqSrv.interfaces.hqRtr.name}/options</code></p>
 <p>Настраиваем IP-адрес</p>
@@ -168,7 +160,7 @@ systemctl restart network
 ip -br a</code></pre>
 <br>
 <p>Запуск консоли BR-SRV</p>
-<p><code>hostnamectl hostname BR-SRV.au-team.irpo</code></p>
+<p><code>hostnamectl hostname BR-SRV.au-team.irpo ; exec bash</code></p>
 <p>Указываем статичный ipv4 адрес для ${devices.brSrv.interfaces.brRtr.name}</p>
 <p><code>sed -i 's/dhcp4/static/g; s/dhcp/static/g' /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/options</code></p>
 <p>Настраиваем IP-адрес</p>
@@ -324,7 +316,6 @@ ip -br a</code></pre>
 <p>	primary ${devices.hqSrv.interfaces.hqRtr.ip}</p>
 <p>}</p>
 <br>
-<p>внимание со вторым IP!!! Нет автоподстановки</p>
 <p>меняем строки:</p>
 <p>subnet ${devices.hqRtr.interfaces.hqSrv.netAddress} netmask ${cidrToMask(devices.hqRtr.interfaces.hqSrv.mask)} {</p>
 <p>	range ${devices.hqCli.interfaces.hqRtr.ip} ${getRangeFor3(devices.hqCli.interfaces.hqRtr.ip)};</p>
@@ -370,19 +361,19 @@ ip -br a</code></pre>
 <p><code>cp zone/127.in-addr.arpa zone/100.db</code></p>
 <p><code>vim zone/100.db</code></p>
 <p>Убираем лишнее и пишем основные моменты:</p>
-<p>0	IN	SOA	${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.apra. root.${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.apra. (...)</p>
-<p>	IN	NS	${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.apra.</p>
+<p>0	IN	SOA	${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa. root.${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa. (...)</p>
+<p>	IN	NS	${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa.</p>
 <p>	IN	A	${devices.hqSrv.interfaces.hqRtr.ip}</p>
-<p>10	IN	PTR	hq-srv.au-team.irpo</p>
+<p>2	IN	PTR	hq-srv.au-team.irpo</p>
 <p>1	IN	PTR	hq-rtr.au-team.irpo</p>
 <p>сохраняем</p>
 <p><code>cp zone/100.db zone/200.db</code></p>
 <p><code>vim zone/200.db</code></p>
 <p>Убираем лишнее и пишем основные моменты:</p>
-<p>0	IN	SOA	${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.apra. root.${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.apra. (...)</p>
-<p>	IN	NS	${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.apra.</p>
+<p>0	IN	SOA	${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa. root.${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa. (...)</p>
+<p>	IN	NS	${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa.</p>
 <p>	IN	A	${devices.hqSrv.interfaces.hqRtr.ip}</p>
-<p>10	IN	PTR	hq-cli.au-team.irpo</p>
+<p>2	IN	PTR	hq-cli.au-team.irpo</p>
 <p>1	IN	PTR	hq-rtr.au-team.irpo</p>
 <p>сохраняем</p>
 <p><code>vim zone/au-team.db</code></p>
@@ -404,9 +395,8 @@ ip -br a</code></pre>
 <p><code>named-checkconf</code></p>
 <p><code>named-checkconf -z</code></p>
 <p><code>echo -e 'nameserver ${devices.hqSrv.interfaces.hqRtr.ip}\\ndomain au-team.irpo' > /etc/net/ifaces/ens18/resolv.conf</code></p>
-<p>nameserver ${devices.hqSrv.interfaces.hqRtr.ip}</p>
 <p><code>systemctl restart network</code></p>
-<p><code>systemctl aneble -- now bind</code></p>
+<p><code>systemctl enable --now bind</code></p>
 <br>
 <p>BR-RTR</p>
 <p><code>echo -e 'nameserver ${devices.hqSrv.interfaces.hqRtr.ip}\\ndomain au-team.irpo' > /etc/net/ifaces/ens18/resolv.conf</code></p>
