@@ -399,30 +399,25 @@ ip -br a</code></pre>
 <p>moodle	IN	CNAME	hq-rtr.au-team.irpo.</p>
 <p>сохраняем</p>
 <p><code>rndc-confgen > rndc.key</code></p>
-<p><code>sed -i '6.$d' rndc.key</code></p>
+<p><code>sed -i '6,$d' rndc.key</code></p>
 <p><code>chgrp -R named zone/</code></p>
 <p><code>named-checkconf</code></p>
 <p><code>named-checkconf -z</code></p>
-<p><code>vim /etc/net/ifaces/ens18/resolv.conf</code></p>
+<p><code>echo -e 'nameserver ${devices.hqSrv.interfaces.hqRtr.ip}\\ndomain au-team.irpo' > /etc/net/ifaces/ens18/resolv.conf</code></p>
 <p>nameserver ${devices.hqSrv.interfaces.hqRtr.ip}</p>
-<p>domain au-team.irpo</p>
-<p><code>systemctl restart networ</code>k</p>
+<p><code>systemctl restart network</code></p>
 <p><code>systemctl aneble -- now bind</code></p>
 <br>
 <p>BR-RTR</p>
-<p>vim /etc/net/ifaces/ens18/resolv.conf</p>
-<p>Скорректировать nameserver ${devices.hqSrv.interfaces.hqRtr.ip}</p>
-<p>domain au-team.irpo</p>
-<p>systemctl restart network</p>
-<p>nmtui</p>
+<p><code>echo -e 'nameserver ${devices.hqSrv.interfaces.hqRtr.ip}\\ndomain au-team.irpo' > /etc/net/ifaces/ens18/resolv.conf</code></p>
+<p><code>systemctl restart network</code></p>
+<p><code>nmtui</code></p>
 <p>перезапустить активные соединения ens</p>
 <br>
 <p>HQ-RTR</p>
-<p>vim /etc/net/ifaces/ens18/resolv.conf</p>
-<p>Скорректировать nameserver ${devices.hqSrv.interfaces.hqRtr.ip}</p>
-<p>domain au-team.irpo</p>
-<p>systemctl restart network</p>
-<p>nmtui</p>
+<p><code>echo -e 'nameserver ${devices.hqSrv.interfaces.hqRtr.ip}\\ndomain au-team.irpo' > /etc/net/ifaces/ens18/resolv.conf</code></p>
+<p><code>systemctl restart network</code></p>
+<p><code>nmtui</code></p>
 <p>перезапустить активные соединения ens</p>
 <br>
 <h3>Задание 11</h3>
@@ -440,7 +435,7 @@ ip -br a</code></pre>
 <p><code>rm -rf /var/cache/samba/</code></p>
 <p><code>mkdir -p /var/lib/samba/sysvol</code></p>
 <p><code>samba-tool domain provision</code></p>
-<p>пароль P@ssw0rd</p>
+<p>пароль <code>P@ssw0rd</code></p>
 <p><code>systemctl enable --now samba.service</code></p>
 <p><code>cp /var/lib/samba/pivate/krb5.conf /etc/</code></p>
 <p><code>visudo</code></p>
@@ -487,12 +482,12 @@ ip -br a</code></pre>
 <br>
 <p>HQ-CLI</p>
 <p>Запускаем центр управления > центр управления системой</p>
-<p>пароль toor</p>
+<p>пароль <code>toor</code></p>
 <p>Пользователи > Аутентификация</p>
 <p>Активируем Домен AD</p>
 <p>Рабочая группа: AU-TEAM</p>
 <p>Применить</p>
-<p>Пароль P@ssw0rd</p>
+<p>Пароль <code>P@ssw0rd</code></p>
 <p>ок</p>
 <p>reboot</p>
 <p>проверяем через терминал</p>
@@ -521,31 +516,31 @@ ip -br a</code></pre>
 <p><code>systemctl enable --now nfs-server.service</code></p>
 <br>
 <p>HQ-CLI</p>
-<p>пользователь user</p>
-<p>пароль resu</p>
-<p>терминал открываем</p>
+<p>пользователь <code>user</code></p>
+<p>пароль <code>resu</code></p>
+<p>открываем терминал</p>
 <p><code>su -</code></p>
-<p>пароль toor</p>
+<p>пароль <code>toor</code></p>
 <p><code>mkdir -p /mnt/nfs</code></p>
 <p><code>vim /etc/fstab</code></p>
 <p>дописываем</p>
 <p>${devices.hqSrv.interfaces.hqRtr.ip}:/raid5/nfs /mnt/nfs nfs defaults 0 0</p>
 <p>сохраняем</p>
-<p>проверяем что пространство монтируется mount -a</p>
+<p>проверяем что пространство монтируется <code>mount -a</code></p>
 <p>ошибок не должно быть</p>
 <br>
 <h3>Задание 4</h3>
 <p>BR-SRV</p>
 <p><code>apt-get install -y ansible</code></p>
 <p>одной командой:</p>
-<p><code>echo -e "[all]\nhq-srv ansible_host=${devices.hqSrv.interfaces.hqRtr.ip} ansible_connection=local\nhq-cli ansible_host=${devices.hqCli.interfaces.hqRtr.ip} ansible_connection=local\nhq-rtr ansible_host=${devices.hqRtr.interfaces.hqCli.ip} ansible_connection=local\nbr-srv ansible_host=${devices.brSrv.interfaces.brRtr.ip} ansible_connection=local" | sudo tee /etc/ansible/hosts > /dev/null</code></p>
+<p><code>echo -e "[all]\\nhq-srv ansible_host=${devices.hqSrv.interfaces.hqRtr.ip} ansible_connection=local\\nhq-cli ansible_host=${devices.hqCli.interfaces.hqRtr.ip} ansible_connection=local\\nhq-rtr ansible_host=${devices.hqRtr.interfaces.hqCli.ip} ansible_connection=local\\nbr-srv ansible_host=${devices.brSrv.interfaces.brRtr.ip} ansible_connection=local" | sudo tee /etc/ansible/hosts > /dev/null</code></p>
 <p>или</p>
 <p><code>vim /etc/ansible/hosts</code></p>
-<p>[all]</p>
-<p>hq-srv ansible_host=${devices.hqSrv.interfaces.hqRtr.ip} ansible_connection=local</p>
-<p>hq-cli ansible_host=${devices.hqCli.interfaces.hqRtr.ip} ansible_connection=local</p>
-<p>hq-rtr ansible_host=${devices.hqRtr.interfaces.hqCli.ip} ansible_connection=local</p>
-<p>br-srv ansible_host=${devices.brSrv.interfaces.brRtr.ip} ansible_connection=local</p>
+<p><code>[all]</code></p>
+<p><code>hq-srv ansible_host=${devices.hqSrv.interfaces.hqRtr.ip} ansible_connection=local</code></p>
+<p><code>hq-cli ansible_host=${devices.hqCli.interfaces.hqRtr.ip} ansible_connection=local</code></p>
+<p><code>hq-rtr ansible_host=${devices.hqRtr.interfaces.hqCli.ip} ansible_connection=local</code></p>
+<p><code>br-srv ansible_host=${devices.brSrv.interfaces.brRtr.ip} ansible_connection=local</code></p>
 <p>проверка</p>
 <p><code>ansible all -m ping</code></p>
 <br>
@@ -555,4 +550,5 @@ ip -br a</code></pre>
 <p><code>apt-get update</code></p>
 <p><code>apt-get install -y yandex-browser-stable</code></p>
 <p><code>reboot</code></p>
+<br>
 `;
