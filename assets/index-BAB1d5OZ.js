@@ -1,4 +1,4 @@
-(function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const s of document.querySelectorAll('link[rel="modulepreload"]'))r(s);new MutationObserver(s=>{for(const p of s)if(p.type==="childList")for(const a of p.addedNodes)a.tagName==="LINK"&&a.rel==="modulepreload"&&r(a)}).observe(document,{childList:!0,subtree:!0});function n(s){const p={};return s.integrity&&(p.integrity=s.integrity),s.referrerPolicy&&(p.referrerPolicy=s.referrerPolicy),s.crossOrigin==="use-credentials"?p.credentials="include":s.crossOrigin==="anonymous"?p.credentials="omit":p.credentials="same-origin",p}function r(s){if(s.ep)return;s.ep=!0;const p=n(s);fetch(s.href,p)}})();const g=".",I=Symbol("target"),F=Symbol("unsubscribe");function L(e){return e instanceof Date||e instanceof Set||e instanceof Map||e instanceof WeakSet||e instanceof WeakMap||ArrayBuffer.isView(e)}function se(e){return(typeof e=="object"?e===null:typeof e!="function")||e instanceof RegExp}const m=Array.isArray;function M(e){return typeof e=="symbol"}const R={after(e,t){return m(e)?e.slice(t.length):t===""?e:e.slice(t.length+1)},concat(e,t){return m(e)?(e=[...e],t&&e.push(t),e):t&&t.toString!==void 0?(e!==""&&(e+=g),M(t)?e+t.toString():e+t):e},initial(e){if(m(e))return e.slice(0,-1);if(e==="")return e;const t=e.lastIndexOf(g);return t===-1?"":e.slice(0,t)},last(e){if(m(e))return e.at(-1)??"";if(e==="")return e;const t=e.lastIndexOf(g);return t===-1?e:e.slice(t+1)},walk(e,t){if(m(e))for(const n of e)t(n);else if(e!==""){let n=0,r=e.indexOf(g);if(r===-1)t(e);else for(;n<e.length;)r===-1&&(r=e.length),t(e.slice(n,r)),n=r+1,r=e.indexOf(g,n)}},get(e,t){return this.walk(t,n=>{e&&(e=e[n])}),e},isSubPath(e,t){if(m(e)){if(e.length<t.length)return!1;for(let n=0;n<t.length;n++)if(e[n]!==t[n])return!1;return!0}return e.length<t.length?!1:e===t?!0:e.startsWith(t)?e[t.length]===g:!1},isRootPath(e){return m(e)?e.length===0:e===""}};function oe(e){return typeof e=="object"&&typeof e.next=="function"}function ce(e,t,n,r,s){const p=e.next;if(t.name==="entries")e.next=function(){const a=p.call(this);return a.done===!1&&(a.value[0]=s(a.value[0],t,a.value[0],r),a.value[1]=s(a.value[1],t,a.value[0],r)),a};else if(t.name==="values"){const a=n[I].keys();e.next=function(){const d=p.call(this);return d.done===!1&&(d.value=s(d.value,t,a.next().value,r)),d}}else e.next=function(){const a=p.call(this);return a.done===!1&&(a.value=s(a.value,t,a.value,r)),a};return e}function W(e,t,n){return e.isUnsubscribed||t.ignoreSymbols&&M(n)||t.ignoreUnderscores&&n.charAt(0)==="_"||"ignoreKeys"in t&&t.ignoreKeys.includes(n)}class pe{constructor(t){this._equals=t,this._proxyCache=new WeakMap,this._pathCache=new WeakMap,this.isUnsubscribed=!1}_getDescriptorCache(){return this._descriptorCache===void 0&&(this._descriptorCache=new WeakMap),this._descriptorCache}_getProperties(t){const n=this._getDescriptorCache();let r=n.get(t);return r===void 0&&(r={},n.set(t,r)),r}_getOwnPropertyDescriptor(t,n){if(this.isUnsubscribed)return Reflect.getOwnPropertyDescriptor(t,n);const r=this._getProperties(t);let s=r[n];return s===void 0&&(s=Reflect.getOwnPropertyDescriptor(t,n),r[n]=s),s}getProxy(t,n,r,s){if(this.isUnsubscribed)return t;const p=t[s],a=p??t;this._pathCache.set(a,n);let d=this._proxyCache.get(a);return d===void 0&&(d=p===void 0?new Proxy(t,r):t,this._proxyCache.set(a,d)),d}getPath(t){return this.isUnsubscribed?void 0:this._pathCache.get(t)}isDetached(t,n){return!Object.is(t,R.get(n,this.getPath(t)))}defineProperty(t,n,r){return Reflect.defineProperty(t,n,r)?(this.isUnsubscribed||(this._getProperties(t)[n]=r),!0):!1}setProperty(t,n,r,s,p){if(!this._equals(p,r)||!(n in t)){const a=this._getOwnPropertyDescriptor(t,n);return a!==void 0&&"set"in a?Reflect.set(t,n,r,s):Reflect.set(t,n,r)}return!0}deleteProperty(t,n,r){if(Reflect.deleteProperty(t,n)){if(!this.isUnsubscribed){const s=this._getDescriptorCache().get(t);s&&(delete s[n],this._pathCache.delete(r))}return!0}return!1}isSameDescriptor(t,n,r){const s=this._getOwnPropertyDescriptor(n,r);return t!==void 0&&s!==void 0&&Object.is(t.value,s.value)&&(t.writable||!1)===(s.writable||!1)&&(t.enumerable||!1)===(s.enumerable||!1)&&(t.configurable||!1)===(s.configurable||!1)&&t.get===s.get&&t.set===s.set}isGetInvariant(t,n){const r=this._getOwnPropertyDescriptor(t,n);return r!==void 0&&r.configurable!==!0&&r.writable!==!0}unsubscribe(){this._descriptorCache=null,this._pathCache=null,this._proxyCache=null,this.isUnsubscribed=!0}}function P(e){return toString.call(e)==="[object Object]"}function v(){return!0}function _(e,t){return e.length!==t.length||e.some((n,r)=>t[r]!==n)}const J=new Set(["hasOwnProperty","isPrototypeOf","propertyIsEnumerable","toLocaleString","toString","valueOf"]),ae=new Set(["concat","includes","indexOf","join","keys","lastIndexOf"]),Y={push:v,pop:v,shift:v,unshift:v,copyWithin:_,reverse:_,sort:_,splice:_,flat:_,fill:_},ie=new Set([...J,...ae,...Object.keys(Y)]);function T(e,t){if(e.size!==t.size)return!0;for(const n of e)if(!t.has(n))return!0;return!1}const Z=["keys","values","entries"],X=new Set(["has","toString"]),ee={add:T,clear:T,delete:T,forEach:T},de=new Set([...X,...Object.keys(ee),...Z]);function E(e,t){if(e.size!==t.size)return!0;let n;for(const[r,s]of e)if(n=t.get(r),n!==s||n===void 0&&!t.has(r))return!0;return!1}const le=new Set([...X,"get"]),te={set:E,clear:E,delete:E,forEach:E},fe=new Set([...le,...Object.keys(te),...Z]);class y{constructor(t,n,r,s){this._path=n,this._isChanged=!1,this._clonedCache=new Set,this._hasOnValidate=s,this._changes=s?[]:null,this.clone=n===void 0?t:this._shallowClone(t)}static isHandledMethod(t){return J.has(t)}_shallowClone(t){let n=t;if(P(t))n={...t};else if(m(t)||ArrayBuffer.isView(t))n=[...t];else if(t instanceof Date)n=new Date(t);else if(t instanceof Set)n=new Set([...t].map(r=>this._shallowClone(r)));else if(t instanceof Map){n=new Map;for(const[r,s]of t.entries())n.set(r,this._shallowClone(s))}return this._clonedCache.add(n),n}preferredThisArg(t,n,r,s){return t?(m(s)?this._onIsChanged=Y[n]:s instanceof Set?this._onIsChanged=ee[n]:s instanceof Map&&(this._onIsChanged=te[n]),s):r}update(t,n,r){const s=R.after(t,this._path);if(n!=="length"){let p=this.clone;R.walk(s,a=>{p!=null&&p[a]&&(this._clonedCache.has(p[a])||(p[a]=this._shallowClone(p[a])),p=p[a])}),this._hasOnValidate&&this._changes.push({path:s,property:n,previous:r}),p!=null&&p[n]&&(p[n]=r)}this._isChanged=!0}undo(t){let n;for(let r=this._changes.length-1;r!==-1;r--)n=this._changes[r],R.get(t,n.path)[n.property]=n.previous}isChanged(t){return this._onIsChanged===void 0?this._isChanged:this._onIsChanged(this.clone,t)}isPathApplicable(t){return R.isRootPath(this._path)||R.isSubPath(t,this._path)}}class z extends y{static isHandledMethod(t){return ie.has(t)}}class he extends y{undo(t){t.setTime(this.clone.getTime())}isChanged(t,n){return!n(this.clone.valueOf(),t.valueOf())}}class K extends y{static isHandledMethod(t){return de.has(t)}undo(t){for(const n of this.clone)t.add(n);for(const n of t)this.clone.has(n)||t.delete(n)}}class j extends y{static isHandledMethod(t){return fe.has(t)}undo(t){for(const[n,r]of this.clone.entries())t.set(n,r);for(const n of t.keys())this.clone.has(n)||t.delete(n)}}class ue extends y{constructor(t,n,r,s){super(void 0,n,r,s),this._argument1=r[0],this._weakValue=t.has(this._argument1)}isChanged(t){return this._weakValue!==t.has(this._argument1)}undo(t){this._weakValue&&!t.has(this._argument1)?t.add(this._argument1):t.delete(this._argument1)}}class me extends y{constructor(t,n,r,s){super(void 0,n,r,s),this._weakKey=r[0],this._weakHas=t.has(this._weakKey),this._weakValue=t.get(this._weakKey)}isChanged(t){return this._weakValue!==t.get(this._weakKey)}undo(t){const n=t.has(this._weakKey);this._weakHas&&!n?t.set(this._weakKey,this._weakValue):!this._weakHas&&n?t.delete(this._weakKey):this._weakValue!==t.get(this._weakKey)&&t.set(this._weakKey,this._weakValue)}}class ${constructor(t){this._stack=[],this._hasOnValidate=t}static isHandledType(t){return P(t)||m(t)||L(t)}static isHandledMethod(t,n){return P(t)?y.isHandledMethod(n):m(t)?z.isHandledMethod(n):t instanceof Set?K.isHandledMethod(n):t instanceof Map?j.isHandledMethod(n):L(t)}get isCloning(){return this._stack.length>0}start(t,n,r){let s=y;m(t)?s=z:t instanceof Date?s=he:t instanceof Set?s=K:t instanceof Map?s=j:t instanceof WeakSet?s=ue:t instanceof WeakMap&&(s=me),this._stack.push(new s(t,n,r,this._hasOnValidate))}update(t,n,r){this._stack.at(-1).update(t,n,r)}preferredThisArg(t,n,r){const{name:s}=t,p=$.isHandledMethod(r,s);return this._stack.at(-1).preferredThisArg(p,s,n,r)}isChanged(t,n,r){return this._stack.at(-1).isChanged(t,n,r)}isPartOfClone(t){return this._stack.at(-1).isPathApplicable(t)}undo(t){this._previousClone!==void 0&&this._previousClone.undo(t)}stop(){return this._previousClone=this._stack.pop(),this._previousClone.clone}}const Re={equals:Object.is,isShallow:!1,pathAsArray:!1,ignoreSymbols:!1,ignoreUnderscores:!1,ignoreDetached:!1,details:!1},N=(e,t,n={})=>{n={...Re,...n};const r=Symbol("ProxyTarget"),{equals:s,isShallow:p,ignoreDetached:a,details:d}=n,f=new pe(s),q=typeof n.onValidate=="function",u=new $(q),A=(o,c,i,l,h)=>!q||u.isCloning||n.onValidate(R.concat(f.getPath(o),c),i,l,h)===!0,H=(o,c,i,l)=>{!W(f,n,c)&&!(a&&f.isDetached(o,e))&&D(f.getPath(o),c,i,l)},D=(o,c,i,l,h)=>{u.isCloning&&u.isPartOfClone(o)?u.update(o,c,l):t(R.concat(o,c),i,l,h)},x=o=>o&&(o[r]??o),Q=(o,c,i,l)=>{if(se(o)||i==="constructor"||p&&!$.isHandledMethod(c,i)||W(f,n,i)||f.isGetInvariant(c,i)||a&&f.isDetached(c,e))return o;l===void 0&&(l=f.getPath(c));const h=R.concat(l,i),b=f.getPath(o);return b&&ne(h,b)?f.getProxy(o,b,k,r):f.getProxy(o,h,k,r)},ne=(o,c)=>{if(M(o)||o.length<=c.length||m(c)&&c.length===0)return!1;const i=m(o)?o:o.split(g),l=m(c)?c:c.split(g);return i.length<=l.length?!1:!l.some((h,b)=>h!==i[b])},k={get(o,c,i){if(M(c)){if(c===r||c===I)return o;if(c===F&&!f.isUnsubscribed&&f.getPath(o).length===0)return f.unsubscribe(),o}const l=L(o)?Reflect.get(o,c):Reflect.get(o,c,i);return Q(l,o,c)},set(o,c,i,l){i=x(i);const h=o[r]??o,b=h[c];if(s(b,i)&&c in o)return!0;const w=A(o,c,i,b);return w&&f.setProperty(h,c,i,l,b)?(H(o,c,o[c],b),!0):!w},defineProperty(o,c,i){if(!f.isSameDescriptor(i,o,c)){const l=o[c];A(o,c,i.value,l)&&f.defineProperty(o,c,i,l)&&H(o,c,i.value,l)}return!0},deleteProperty(o,c){if(!Reflect.has(o,c))return!0;const i=Reflect.get(o,c),l=A(o,c,void 0,i);return l&&f.deleteProperty(o,c,i)?(H(o,c,void 0,i),!0):!l},apply(o,c,i){const l=c[r]??c;if(f.isUnsubscribed)return Reflect.apply(o,l,i);if((d===!1||d!==!0&&!d.includes(o.name))&&$.isHandledType(l)){let h=R.initial(f.getPath(o));const b=$.isHandledMethod(l,o.name);u.start(l,h,i);let w=Reflect.apply(o,u.preferredThisArg(o,c,l),b?i.map(C=>x(C)):i);const re=u.isChanged(l,s),B=u.stop();if($.isHandledType(w)&&b&&(c instanceof Map&&o.name==="get"&&(h=R.concat(h,i[0])),w=f.getProxy(w,h,k)),re){const C={name:o.name,args:i,result:w},V=u.isCloning?R.initial(h):h,U=u.isCloning?R.last(h):"";A(R.get(e,V),U,l,B,C)?D(V,U,l,B,C):u.undo(l)}return(c instanceof Map||c instanceof Set)&&oe(w)?ce(w,o,c,h,Q):w}return Reflect.apply(o,c,i)}},O=f.getProxy(e,n.pathAsArray?[]:"",k);return t=t.bind(O),q&&(n.onValidate=n.onValidate.bind(O)),O};N.target=e=>(e==null?void 0:e[I])??e;N.unsubscribe=e=>(e==null?void 0:e[F])??e;const S=e=>e.split(".").slice(0,3).reverse().join("."),be=e=>Array(4).fill(0).map((n,r)=>256-2**(8-Math.min(8,Math.max(0,e-r*8)))).join("."),qe=e=>{const t=e.split(".").map(Number),n=t[3]+3;return t[3]=n,t.join(".")},we=({devices:e})=>`
+(function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const s of document.querySelectorAll('link[rel="modulepreload"]'))r(s);new MutationObserver(s=>{for(const c of s)if(c.type==="childList")for(const a of c.addedNodes)a.tagName==="LINK"&&a.rel==="modulepreload"&&r(a)}).observe(document,{childList:!0,subtree:!0});function n(s){const c={};return s.integrity&&(c.integrity=s.integrity),s.referrerPolicy&&(c.referrerPolicy=s.referrerPolicy),s.crossOrigin==="use-credentials"?c.credentials="include":s.crossOrigin==="anonymous"?c.credentials="omit":c.credentials="same-origin",c}function r(s){if(s.ep)return;s.ep=!0;const c=n(s);fetch(s.href,c)}})();const g=".",I=Symbol("target"),F=Symbol("unsubscribe");function L(e){return e instanceof Date||e instanceof Set||e instanceof Map||e instanceof WeakSet||e instanceof WeakMap||ArrayBuffer.isView(e)}function se(e){return(typeof e=="object"?e===null:typeof e!="function")||e instanceof RegExp}const m=Array.isArray;function H(e){return typeof e=="symbol"}const R={after(e,t){return m(e)?e.slice(t.length):t===""?e:e.slice(t.length+1)},concat(e,t){return m(e)?(e=[...e],t&&e.push(t),e):t&&t.toString!==void 0?(e!==""&&(e+=g),H(t)?e+t.toString():e+t):e},initial(e){if(m(e))return e.slice(0,-1);if(e==="")return e;const t=e.lastIndexOf(g);return t===-1?"":e.slice(0,t)},last(e){if(m(e))return e.at(-1)??"";if(e==="")return e;const t=e.lastIndexOf(g);return t===-1?e:e.slice(t+1)},walk(e,t){if(m(e))for(const n of e)t(n);else if(e!==""){let n=0,r=e.indexOf(g);if(r===-1)t(e);else for(;n<e.length;)r===-1&&(r=e.length),t(e.slice(n,r)),n=r+1,r=e.indexOf(g,n)}},get(e,t){return this.walk(t,n=>{e&&(e=e[n])}),e},isSubPath(e,t){if(m(e)){if(e.length<t.length)return!1;for(let n=0;n<t.length;n++)if(e[n]!==t[n])return!1;return!0}return e.length<t.length?!1:e===t?!0:e.startsWith(t)?e[t.length]===g:!1},isRootPath(e){return m(e)?e.length===0:e===""}};function oe(e){return typeof e=="object"&&typeof e.next=="function"}function pe(e,t,n,r,s){const c=e.next;if(t.name==="entries")e.next=function(){const a=c.call(this);return a.done===!1&&(a.value[0]=s(a.value[0],t,a.value[0],r),a.value[1]=s(a.value[1],t,a.value[0],r)),a};else if(t.name==="values"){const a=n[I].keys();e.next=function(){const d=c.call(this);return d.done===!1&&(d.value=s(d.value,t,a.next().value,r)),d}}else e.next=function(){const a=c.call(this);return a.done===!1&&(a.value=s(a.value,t,a.value,r)),a};return e}function z(e,t,n){return e.isUnsubscribed||t.ignoreSymbols&&H(n)||t.ignoreUnderscores&&n.charAt(0)==="_"||"ignoreKeys"in t&&t.ignoreKeys.includes(n)}class ce{constructor(t){this._equals=t,this._proxyCache=new WeakMap,this._pathCache=new WeakMap,this.isUnsubscribed=!1}_getDescriptorCache(){return this._descriptorCache===void 0&&(this._descriptorCache=new WeakMap),this._descriptorCache}_getProperties(t){const n=this._getDescriptorCache();let r=n.get(t);return r===void 0&&(r={},n.set(t,r)),r}_getOwnPropertyDescriptor(t,n){if(this.isUnsubscribed)return Reflect.getOwnPropertyDescriptor(t,n);const r=this._getProperties(t);let s=r[n];return s===void 0&&(s=Reflect.getOwnPropertyDescriptor(t,n),r[n]=s),s}getProxy(t,n,r,s){if(this.isUnsubscribed)return t;const c=t[s],a=c??t;this._pathCache.set(a,n);let d=this._proxyCache.get(a);return d===void 0&&(d=c===void 0?new Proxy(t,r):t,this._proxyCache.set(a,d)),d}getPath(t){return this.isUnsubscribed?void 0:this._pathCache.get(t)}isDetached(t,n){return!Object.is(t,R.get(n,this.getPath(t)))}defineProperty(t,n,r){return Reflect.defineProperty(t,n,r)?(this.isUnsubscribed||(this._getProperties(t)[n]=r),!0):!1}setProperty(t,n,r,s,c){if(!this._equals(c,r)||!(n in t)){const a=this._getOwnPropertyDescriptor(t,n);return a!==void 0&&"set"in a?Reflect.set(t,n,r,s):Reflect.set(t,n,r)}return!0}deleteProperty(t,n,r){if(Reflect.deleteProperty(t,n)){if(!this.isUnsubscribed){const s=this._getDescriptorCache().get(t);s&&(delete s[n],this._pathCache.delete(r))}return!0}return!1}isSameDescriptor(t,n,r){const s=this._getOwnPropertyDescriptor(n,r);return t!==void 0&&s!==void 0&&Object.is(t.value,s.value)&&(t.writable||!1)===(s.writable||!1)&&(t.enumerable||!1)===(s.enumerable||!1)&&(t.configurable||!1)===(s.configurable||!1)&&t.get===s.get&&t.set===s.set}isGetInvariant(t,n){const r=this._getOwnPropertyDescriptor(t,n);return r!==void 0&&r.configurable!==!0&&r.writable!==!0}unsubscribe(){this._descriptorCache=null,this._pathCache=null,this._proxyCache=null,this.isUnsubscribed=!0}}function P(e){return toString.call(e)==="[object Object]"}function v(){return!0}function _(e,t){return e.length!==t.length||e.some((n,r)=>t[r]!==n)}const J=new Set(["hasOwnProperty","isPrototypeOf","propertyIsEnumerable","toLocaleString","toString","valueOf"]),ae=new Set(["concat","includes","indexOf","join","keys","lastIndexOf"]),Y={push:v,pop:v,shift:v,unshift:v,copyWithin:_,reverse:_,sort:_,splice:_,flat:_,fill:_},ie=new Set([...J,...ae,...Object.keys(Y)]);function T(e,t){if(e.size!==t.size)return!0;for(const n of e)if(!t.has(n))return!0;return!1}const Z=["keys","values","entries"],X=new Set(["has","toString"]),ee={add:T,clear:T,delete:T,forEach:T},de=new Set([...X,...Object.keys(ee),...Z]);function E(e,t){if(e.size!==t.size)return!0;let n;for(const[r,s]of e)if(n=t.get(r),n!==s||n===void 0&&!t.has(r))return!0;return!1}const le=new Set([...X,"get"]),te={set:E,clear:E,delete:E,forEach:E},fe=new Set([...le,...Object.keys(te),...Z]);class y{constructor(t,n,r,s){this._path=n,this._isChanged=!1,this._clonedCache=new Set,this._hasOnValidate=s,this._changes=s?[]:null,this.clone=n===void 0?t:this._shallowClone(t)}static isHandledMethod(t){return J.has(t)}_shallowClone(t){let n=t;if(P(t))n={...t};else if(m(t)||ArrayBuffer.isView(t))n=[...t];else if(t instanceof Date)n=new Date(t);else if(t instanceof Set)n=new Set([...t].map(r=>this._shallowClone(r)));else if(t instanceof Map){n=new Map;for(const[r,s]of t.entries())n.set(r,this._shallowClone(s))}return this._clonedCache.add(n),n}preferredThisArg(t,n,r,s){return t?(m(s)?this._onIsChanged=Y[n]:s instanceof Set?this._onIsChanged=ee[n]:s instanceof Map&&(this._onIsChanged=te[n]),s):r}update(t,n,r){const s=R.after(t,this._path);if(n!=="length"){let c=this.clone;R.walk(s,a=>{c!=null&&c[a]&&(this._clonedCache.has(c[a])||(c[a]=this._shallowClone(c[a])),c=c[a])}),this._hasOnValidate&&this._changes.push({path:s,property:n,previous:r}),c!=null&&c[n]&&(c[n]=r)}this._isChanged=!0}undo(t){let n;for(let r=this._changes.length-1;r!==-1;r--)n=this._changes[r],R.get(t,n.path)[n.property]=n.previous}isChanged(t){return this._onIsChanged===void 0?this._isChanged:this._onIsChanged(this.clone,t)}isPathApplicable(t){return R.isRootPath(this._path)||R.isSubPath(t,this._path)}}class W extends y{static isHandledMethod(t){return ie.has(t)}}class he extends y{undo(t){t.setTime(this.clone.getTime())}isChanged(t,n){return!n(this.clone.valueOf(),t.valueOf())}}class K extends y{static isHandledMethod(t){return de.has(t)}undo(t){for(const n of this.clone)t.add(n);for(const n of t)this.clone.has(n)||t.delete(n)}}class j extends y{static isHandledMethod(t){return fe.has(t)}undo(t){for(const[n,r]of this.clone.entries())t.set(n,r);for(const n of t.keys())this.clone.has(n)||t.delete(n)}}class ue extends y{constructor(t,n,r,s){super(void 0,n,r,s),this._argument1=r[0],this._weakValue=t.has(this._argument1)}isChanged(t){return this._weakValue!==t.has(this._argument1)}undo(t){this._weakValue&&!t.has(this._argument1)?t.add(this._argument1):t.delete(this._argument1)}}class me extends y{constructor(t,n,r,s){super(void 0,n,r,s),this._weakKey=r[0],this._weakHas=t.has(this._weakKey),this._weakValue=t.get(this._weakKey)}isChanged(t){return this._weakValue!==t.get(this._weakKey)}undo(t){const n=t.has(this._weakKey);this._weakHas&&!n?t.set(this._weakKey,this._weakValue):!this._weakHas&&n?t.delete(this._weakKey):this._weakValue!==t.get(this._weakKey)&&t.set(this._weakKey,this._weakValue)}}class A{constructor(t){this._stack=[],this._hasOnValidate=t}static isHandledType(t){return P(t)||m(t)||L(t)}static isHandledMethod(t,n){return P(t)?y.isHandledMethod(n):m(t)?W.isHandledMethod(n):t instanceof Set?K.isHandledMethod(n):t instanceof Map?j.isHandledMethod(n):L(t)}get isCloning(){return this._stack.length>0}start(t,n,r){let s=y;m(t)?s=W:t instanceof Date?s=he:t instanceof Set?s=K:t instanceof Map?s=j:t instanceof WeakSet?s=ue:t instanceof WeakMap&&(s=me),this._stack.push(new s(t,n,r,this._hasOnValidate))}update(t,n,r){this._stack.at(-1).update(t,n,r)}preferredThisArg(t,n,r){const{name:s}=t,c=A.isHandledMethod(r,s);return this._stack.at(-1).preferredThisArg(c,s,n,r)}isChanged(t,n,r){return this._stack.at(-1).isChanged(t,n,r)}isPartOfClone(t){return this._stack.at(-1).isPathApplicable(t)}undo(t){this._previousClone!==void 0&&this._previousClone.undo(t)}stop(){return this._previousClone=this._stack.pop(),this._previousClone.clone}}const Re={equals:Object.is,isShallow:!1,pathAsArray:!1,ignoreSymbols:!1,ignoreUnderscores:!1,ignoreDetached:!1,details:!1},N=(e,t,n={})=>{n={...Re,...n};const r=Symbol("ProxyTarget"),{equals:s,isShallow:c,ignoreDetached:a,details:d}=n,f=new ce(s),w=typeof n.onValidate=="function",u=new A(w),$=(o,p,i,l,h)=>!w||u.isCloning||n.onValidate(R.concat(f.getPath(o),p),i,l,h)===!0,M=(o,p,i,l)=>{!z(f,n,p)&&!(a&&f.isDetached(o,e))&&D(f.getPath(o),p,i,l)},D=(o,p,i,l,h)=>{u.isCloning&&u.isPartOfClone(o)?u.update(o,p,l):t(R.concat(o,p),i,l,h)},x=o=>o&&(o[r]??o),Q=(o,p,i,l)=>{if(se(o)||i==="constructor"||c&&!A.isHandledMethod(p,i)||z(f,n,i)||f.isGetInvariant(p,i)||a&&f.isDetached(p,e))return o;l===void 0&&(l=f.getPath(p));const h=R.concat(l,i),b=f.getPath(o);return b&&ne(h,b)?f.getProxy(o,b,k,r):f.getProxy(o,h,k,r)},ne=(o,p)=>{if(H(o)||o.length<=p.length||m(p)&&p.length===0)return!1;const i=m(o)?o:o.split(g),l=m(p)?p:p.split(g);return i.length<=l.length?!1:!l.some((h,b)=>h!==i[b])},k={get(o,p,i){if(H(p)){if(p===r||p===I)return o;if(p===F&&!f.isUnsubscribed&&f.getPath(o).length===0)return f.unsubscribe(),o}const l=L(o)?Reflect.get(o,p):Reflect.get(o,p,i);return Q(l,o,p)},set(o,p,i,l){i=x(i);const h=o[r]??o,b=h[p];if(s(b,i)&&p in o)return!0;const S=$(o,p,i,b);return S&&f.setProperty(h,p,i,l,b)?(M(o,p,o[p],b),!0):!S},defineProperty(o,p,i){if(!f.isSameDescriptor(i,o,p)){const l=o[p];$(o,p,i.value,l)&&f.defineProperty(o,p,i,l)&&M(o,p,i.value,l)}return!0},deleteProperty(o,p){if(!Reflect.has(o,p))return!0;const i=Reflect.get(o,p),l=$(o,p,void 0,i);return l&&f.deleteProperty(o,p,i)?(M(o,p,void 0,i),!0):!l},apply(o,p,i){const l=p[r]??p;if(f.isUnsubscribed)return Reflect.apply(o,l,i);if((d===!1||d!==!0&&!d.includes(o.name))&&A.isHandledType(l)){let h=R.initial(f.getPath(o));const b=A.isHandledMethod(l,o.name);u.start(l,h,i);let S=Reflect.apply(o,u.preferredThisArg(o,p,l),b?i.map(C=>x(C)):i);const re=u.isChanged(l,s),B=u.stop();if(A.isHandledType(S)&&b&&(p instanceof Map&&o.name==="get"&&(h=R.concat(h,i[0])),S=f.getProxy(S,h,k)),re){const C={name:o.name,args:i,result:S},V=u.isCloning?R.initial(h):h,U=u.isCloning?R.last(h):"";$(R.get(e,V),U,l,B,C)?D(V,U,l,B,C):u.undo(l)}return(p instanceof Map||p instanceof Set)&&oe(S)?pe(S,o,p,h,Q):S}return Reflect.apply(o,p,i)}},O=f.getProxy(e,n.pathAsArray?[]:"",k);return t=t.bind(O),w&&(n.onValidate=n.onValidate.bind(O)),O};N.target=e=>(e==null?void 0:e[I])??e;N.unsubscribe=e=>(e==null?void 0:e[F])??e;const q=e=>e.split(".").slice(0,3).reverse().join("."),be=e=>Array(4).fill(0).map((n,r)=>256-2**(8-Math.min(8,Math.max(0,e-r*8)))).join("."),qe=e=>{const t=e.split(".").map(Number),n=t[3]+3;return t[3]=n,t.join(".")},we=({devices:e})=>`
 <p>Запуск ISP</p>
 <p>login <code>root</code></p>
 <p>Password <code>toor</code></p>
@@ -168,24 +168,10 @@ ip -br a</code></pre>
 <p><code>systemctl restart sshd</code></p>
 <br>
 <h3>Задание 6</h3>
-<p>BR-RTR</p>
+<p>HQ-RTR</code></p>
 <p><code>nmtui</code></p>
 <p>добавляем интерфейс <code>ip tunnel</code></p>
-<p>Имя профиля: <code>gre1</code></p>
-<p>Device: <code>gre1</code></p>
-<p>Mode: <code>GRE</code></p>
-<p>Parent: <code>ens18</code></p>
-<p>Local ip: <code>${e.brRtr.interfaces.isp.ip}</code></p>
-<p>Remote ip: <code>${e.hqRtr.interfaces.isp.ip}</code></p>
-<p>IPv4: <code>manual</code></p>
-<p>Addresses: <code>${e.brRtr.interfaces.hqRtr.ip}/${e.brRtr.interfaces.hqRtr.mask}</code></p>
-<p>проверяем <code>ip -br a</code></p>
-<br>
-<p>Запуск HQ-RTR</code></p>
-<p>смотрим сеть <code>ip -br a</code></p>
-<p><code>nmtui</code></p>
-<p>добавляем интерфейс <code>ip tunnel</code></p>
-<p>Имя профиля: <code>gre1</code></p>
+<p>Имя профиля: <code>BR-RTR</code></p>
 <p>Device: <code>gre1</code></p>
 <p>Mode: <code>GRE</code></p>
 <p>Parent: <code>ens18</code></p>
@@ -193,9 +179,47 @@ ip -br a</code></pre>
 <p>Remote ip: <code>${e.brRtr.interfaces.isp.ip}</code></p>
 <p>IPv4: <code>manual</code></p>
 <p>Addresses: <code>${e.hqRtr.interfaces.brRtr.ip}/${e.hqRtr.interfaces.brRtr.mask}</code></p>
-<p>проверяем <code>ip -br a</code></p>
+<p>перезагружаем соединение BR-RTR</p>
+<p>проверяем: <code>ip -br a</code></p>
+<br>
+<p>BR-RTR</p>
+<p><code>nmtui</code></p>
+<p>добавляем интерфейс <code>ip tunnel</code></p>
+<p>Имя профиля: <code>HQ-RTR</code></p>
+<p>Device: <code>gre1</code></p>
+<p>Mode: <code>GRE</code></p>
+<p>Parent: <code>ens18</code></p>
+<p>Local ip: <code>${e.brRtr.interfaces.isp.ip}</code></p>
+<p>Remote ip: <code>${e.hqRtr.interfaces.isp.ip}</code></p>
+<p>IPv4: <code>manual</code></p>
+<p>Addresses: <code>${e.brRtr.interfaces.hqRtr.ip}/${e.brRtr.interfaces.hqRtr.mask}</code></p>
+<p>перезагружаем соединение HQ-RTR</p>
+<p>проверяем: <code>ip -br a</code></p>
 <br>
 <h3>Задание 7</h3>
+<p>HQ-RTR</p>
+<p><code>apt-get install -y frr</code></p>
+<p><code>vim /etc/frr/daemons</code></p>
+<p>исправить строку <code>ospfd=yes</code></p>
+<p><code>systemctl restart frr</code></p>
+<p><code>systemctl enable --now frr</code></p>
+<p><code>vtysh</code></p>
+<p><code>conf t</code></p>
+<p><code>ip forwarding</code></p>
+<p><code>router ospf</code></p>
+<p><code>network ${e.hqRtr.interfaces.brRtr.netAddress}/${e.hqRtr.interfaces.brRtr.mask} area 0</code></p>
+<p><code>network ${e.hqRtr.interfaces.hqSrv.netAddress}/${e.hqRtr.interfaces.hqSrv.mask} area 0</code></p>
+<p><code>network ${e.hqRtr.interfaces.hqCli.netAddress}/${e.hqRtr.interfaces.hqCli.mask} area 0</code></p>
+<p><code>network ${e.hqRtr.interfaces.vlan999.netAddress}/${e.hqRtr.interfaces.vlan999.mask} area 0</code></p>
+<p><code>ex</code></p>
+<p><code>int gre1</code></p>
+<p><code>no ip ospf passive</code></p>
+<p><code>ex</code></p>
+<p><code>ex</code></p>
+<p><code>wr</code></p>
+<p><code>ex</code></p>
+<p><code>reboot</code></p>
+<br>
 <p>BR-RTR</p>
 <p><code>apt-get install -y frr</code></p>
 <p><code>vim /etc/frr/daemons</code></p>
@@ -209,29 +233,6 @@ ip -br a</code></pre>
 <p><code>passive-interface default</code></p>
 <p><code>network ${e.brRtr.interfaces.hqRtr.netAddress}/${e.brRtr.interfaces.hqRtr.mask} area 0</code></p>
 <p><code>network ${e.brRtr.interfaces.brSrv.netAddress}/${e.brRtr.interfaces.brSrv.mask} area 0</code></p>
-<p><code>ex</code></p>
-<p><code>int gre1</code></p>
-<p><code>no ip ospf passive</code></p>
-<p><code>ex</code></p>
-<p><code>ex</code></p>
-<p><code>wr</code></p>
-<p><code>ex</code></p>
-<p><code>reboot</code></p>
-<br>
-<p>HQ-RTR</p>
-<p><code>apt-get install -y frr</code></p>
-<p><code>vim /etc/frr/daemons</code></p>
-<p>исправить строку <code>ospfd=yes</code></p>
-<p><code>systemctl restart frr</code></p>
-<p><code>systemctl enable --now frr</code></p>
-<p><code>vtysh</code></p>
-<p><code>conf t</code></p>
-<p><code>router ospf</code></p>
-<p><code>passive-interface default</code></p>
-<p><code>network ${e.hqRtr.interfaces.brRtr.netAddress}/${e.hqRtr.interfaces.brRtr.mask} area 0</code></p>
-<p><code>network ${e.hqRtr.interfaces.hqSrv.netAddress}/${e.hqRtr.interfaces.hqSrv.mask} area 0</code></p>
-<p><code>network ${e.hqRtr.interfaces.hqCli.netAddress}/${e.hqRtr.interfaces.hqCli.mask} area 0</code></p>
-<p><code>network ${e.hqRtr.interfaces.vlan999.netAddress}/${e.hqRtr.interfaces.vlan999.mask} area 0</code></p>
 <p><code>ex</code></p>
 <p><code>int gre1</code></p>
 <p><code>no ip ospf passive</code></p>
@@ -268,19 +269,33 @@ ip -br a</code></pre>
 <p>добавить после</p>
 <p><code>ddns-update-style interim;</code></p>
 <p><code>update-static-leases on;</code></p>
+<p>КОПИРОВАНИЕ В РАЗРАБОТКЕ, НЕ ЗАБЫТЬ ПРО ТАБЫ!!!</p>
+<p><pre><code>
+zone au-team.irpo {
+&#9;primary ${e.hqSrv.interfaces.hqRtr.ip};
+}
+
+zone ${q(e.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa {
+&#9;primary ${e.hqSrv.interfaces.hqRtr.ip};
+}
+
+zone ${q(e.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa {
+&#9;primary ${e.hqSrv.interfaces.hqRtr.ip};
+}
+</code></pre></p>
 <p>zone au-team.irpo {</p>
-<p>	primary ${e.hqSrv.interfaces.hqRtr.ip}</p>
-<p>}</p>
-<p>выбрать начало “y” и в конце “2” “p”, но можно руками</p>
-<br>
-<p>zone ${S(e.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa {</p>
-<p>	primary ${e.hqSrv.interfaces.hqRtr.ip}</p>
+<p> primary ${e.hqSrv.interfaces.hqRtr.ip};</p>
 <p>}</p>
 <br>
-<p>zone ${S(e.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa {</p>
-<p>	primary ${e.hqSrv.interfaces.hqRtr.ip}</p>
+<p>zone ${q(e.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa {</p>
+<p> primary ${e.hqSrv.interfaces.hqRtr.ip};</p>
 <p>}</p>
 <br>
+<p>zone ${q(e.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa {</p>
+<p> primary ${e.hqSrv.interfaces.hqRtr.ip};</p>
+<p>}</p>
+<br>
+<p>Подсказка: можно выбрать начало “y” и в конце “2” “p”, но можно руками</p>
 <p>меняем строки:</p>
 <p>subnet ${e.hqRtr.interfaces.hqCli.netAddress} netmask ${be(e.hqRtr.interfaces.hqCli.mask)} {</p>
 <p>	range ${e.hqCli.interfaces.hqRtr.ip} ${qe(e.hqCli.interfaces.hqRtr.ip)};</p>
@@ -311,12 +326,12 @@ ip -br a</code></pre>
 <p>file “au-team.irpo”;</p>
 <p>allow-update { any; };</p>
 <p>}</p>
-<p>zone ${S(e.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa {</p>
+<p>zone ${q(e.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa {</p>
 <p>	type master;</p>
 <p>	file “100.db”;</p>
 <p>allow-update { any; };</p>
 <p>}</p>
-<p>zone ${S(e.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa {</p>
+<p>zone ${q(e.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa {</p>
 <p>type master;	</p>
 <p>	file “200.db”;</p>
 <p>allow-update { any; };</p>
@@ -326,8 +341,8 @@ ip -br a</code></pre>
 <p><code>cp zone/127.in-addr.arpa zone/100.db</code></p>
 <p><code>vim zone/100.db</code></p>
 <p>Убираем лишнее и пишем основные моменты:</p>
-<p>0	IN	SOA	${S(e.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa. root.${S(e.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa. (...)</p>
-<p>	IN	NS	${S(e.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa.</p>
+<p>0	IN	SOA	${q(e.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa. root.${q(e.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa. (...)</p>
+<p>	IN	NS	${q(e.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa.</p>
 <p>	IN	A	${e.hqSrv.interfaces.hqRtr.ip}</p>
 <p>2	IN	PTR	hq-srv.au-team.irpo</p>
 <p>1	IN	PTR	hq-rtr.au-team.irpo</p>
@@ -335,8 +350,8 @@ ip -br a</code></pre>
 <p><code>cp zone/100.db zone/200.db</code></p>
 <p><code>vim zone/200.db</code></p>
 <p>Убираем лишнее и пишем основные моменты:</p>
-<p>0	IN	SOA	${S(e.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa. root.${S(e.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa. (...)</p>
-<p>	IN	NS	${S(e.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa.</p>
+<p>0	IN	SOA	${q(e.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa. root.${q(e.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa. (...)</p>
+<p>	IN	NS	${q(e.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa.</p>
 <p>	IN	A	${e.hqSrv.interfaces.hqRtr.ip}</p>
 <p>2	IN	PTR	hq-cli.au-team.irpo</p>
 <p>1	IN	PTR	hq-rtr.au-team.irpo</p>
@@ -514,15 +529,15 @@ ip -br a</code></pre>
       <th>Маска</th>
       <th>Шлюз по умолчанию</th>
     </tr>
-  `,n.appendChild(r);const s=document.createElement("tbody");Object.values(t).forEach(({name:p,interfaces:a})=>{const d=Object.values(a);if(!d.length)return;const f=document.createElement("tr");f.innerHTML=`
-      <td rowspan="${d.length}">${p}</td>
+  `,n.appendChild(r);const s=document.createElement("tbody");Object.values(t).forEach(({name:c,interfaces:a})=>{const d=Object.values(a);if(!d.length)return;const f=document.createElement("tr");f.innerHTML=`
+      <td rowspan="${d.length}">${c}</td>
       <td>${d[0].destination||"-"}</td>
       <td>${d[0].ip}</td>
       <td>${d[0].mask}</td>
       <td>${d[0].gateway}</td>
-    `,s.appendChild(f);for(let q=1;q<d.length;q+=1){const u=d[q],A=document.createElement("tr");A.innerHTML=`
+    `,s.appendChild(f);for(let w=1;w<d.length;w+=1){const u=d[w],$=document.createElement("tr");$.innerHTML=`
         <td>${u.destination||"-"}</td>
         <td>${u.ip}</td>
         <td>${u.mask}</td>
         <td>${u.gateway}</td>
-      `,s.appendChild(A)}}),n.appendChild(s),e.ipTableContainer.innerHTML="",e.ipTableContainer.appendChild(n)},ge=(e,t)=>{const n=we(t);e.textContainer.innerHTML=n,document.querySelectorAll("code").forEach(r=>{const s=document.createElement("span");s.className="code-wrapper";const p=document.createElement("div");p.className="code-copy-toast",p.textContent="Скопировано!",r.parentNode.insertBefore(s,r),s.appendChild(r),s.appendChild(p),r.style.cursor="pointer",r.title="Кликни, чтобы скопировать",r.addEventListener("click",()=>{navigator.clipboard.writeText(r.innerText).then(()=>{p.classList.add("show"),setTimeout(()=>p.classList.remove("show"),300)})})})},ye=(e,t)=>(n,r)=>{switch(n){case"devices":Se(e,t),ge(e,t);break}};function Ae(e){const t=new Set;return Object.values(e).forEach(n=>{Object.values(n.interfaces).forEach(r=>{r.netAddress&&!r.netAddress.startsWith("<")&&t.add(r.netAddress)})}),Array.from(t)}function $e(e,t){const n=document.createElement("form");n.id="network-form",n.innerHTML="<h3>Настройки сетей</h3>",e.forEach(s=>{const p=document.createElement("div");p.className="network-input";const a=document.createElement("label");a.textContent=`Сеть ${s}:`;const d=document.createElement("input");d.type="text",d.placeholder="Базовый адрес (напр. 192.168.0)",d.dataset.network=s;const f=document.createElement("input");f.type="text",f.placeholder="Маска (напр. 24)",f.dataset.network=s,p.append(a,d,f),n.append(p)});const r=document.createElement("button");r.type="button",r.textContent="Обновить",n.append(r),t.innerHTML="",t.append(n)}function _e(){const e=document.querySelectorAll("#network-form input"),t={};return e.forEach(n=>{const{network:r}=n.dataset;t[r]||(t[r]={}),n.placeholder.includes("Базовый")?t[r].base=n.value.trim():t[r].mask=n.value.trim()}),t}function ke(e,t){const n=JSON.parse(JSON.stringify(e));return Object.entries(t).forEach(([r,{base:s,mask:p}])=>{!s||!p||Object.values(n).forEach(a=>{Object.values(a.interfaces).forEach(d=>{if(d.netAddress===r){d.mask=p;const[f]=d.ip.split(".").slice(-1);if(d.ip=`${s}.${f}`,d.netAddress=`${s}.0`,d.gateway!=="-"){const q=d.gateway.split(".");q.splice(0,3,...s.split(".")),d.gateway=q.join(".")}}})})}),n}const G={isp:{name:"ISP",interfaces:{external:{name:"ens18",ip:"<ВНЕШНИЙ>",mask:"24",gateway:"<ВНЕШНИЙ>",destination:"Интернет",netAddress:""},hqRtr:{name:"ens19",ip:"172.16.4.1",mask:"28",gateway:"-",destination:"HQ-RTR",netAddress:"172.16.4.0"},brRtr:{name:"ens20",ip:"172.16.5.1",mask:"28",gateway:"-",destination:"BR-RTR",netAddress:"172.16.5.0"}}},hqRtr:{name:"HQ-RTR",interfaces:{isp:{name:"ens18",ip:"172.16.4.2",mask:"28",gateway:"172.16.4.1",destination:"ISP",netAddress:"172.16.4.0"},brRtr:{name:"gre1",ip:"10.5.5.1",mask:"30",gateway:"-",destination:"BR-RTR",netAddress:"10.5.5.0"},hqSrv:{name:"VLAN100",ip:"192.168.100.1",mask:"26",gateway:"-",destination:"HQ-SRV",netAddress:"192.168.100.0"},hqCli:{name:"VLAN200",ip:"192.168.200.1",mask:"28",gateway:"-",destination:"HQ-CLI",netAddress:"192.168.200.0"},vlan999:{name:"VLAN999",ip:"192.168.99.1",mask:"29",gateway:"-",destination:"VLAN999 (?)",netAddress:"192.168.99.0"}}},hqSrv:{name:"HQ-SRV",interfaces:{hqRtr:{name:"ens18",ip:"192.168.100.2",mask:"26",gateway:"192.168.100.1",destination:"HQ-RTR",netAddress:"192.168.100.0"}}},hqCli:{name:"HQ-CLI",interfaces:{hqRtr:{name:"ens18",ip:"192.168.200.2",mask:"28",gateway:"192.168.200.1",destination:"HQ-RTR",netAddress:"192.168.200.0"}}},brRtr:{name:"BR-RTR",interfaces:{isp:{name:"ens18",ip:"172.16.5.2",mask:"28",gateway:"172.16.5.1",destination:"ISP",netAddress:"172.16.5.0"},brSrv:{name:"ens19",ip:"192.168.0.1",mask:"27",gateway:"-",destination:"BR-SRV",netAddress:"192.168.0.0"},hqRtr:{name:"gre1",ip:"10.5.5.2",mask:"30",gateway:"-",destination:"HQ-RTR",netAddress:"10.5.5.0"}}},brSrv:{name:"BR-SRV",interfaces:{brRtr:{name:"ens18",ip:"192.168.0.2",mask:"27",gateway:"192.168.0.1",destination:"BR-RTR",netAddress:"192.168.0.0"}}}},Ce=()=>{const e={ipTableContainer:document.getElementById("ip-table-container"),textContainer:document.getElementById("text-container"),networkFormContainer:document.getElementById("network-form-container")},t={devices:[]},n=N(t,ye(e,t));n.devices=G;const r=JSON.parse(JSON.stringify(G)),s=Ae(r);$e(s,e.networkFormContainer),document.querySelector("#network-form button").addEventListener("click",()=>{const p=_e(),a=ke(r,p);console.log(a),n.devices=a})};Ce();
+      `,s.appendChild($)}}),n.appendChild(s),e.ipTableContainer.innerHTML="",e.ipTableContainer.appendChild(n)},ge=(e,t)=>{const n=we(t);e.textContainer.innerHTML=n,document.querySelectorAll("code").forEach(r=>{const s=document.createElement("span");s.className="code-wrapper";const c=document.createElement("div");c.className="code-copy-toast",c.textContent="Скопировано!",r.parentNode.insertBefore(s,r),s.appendChild(r),s.appendChild(c),r.style.cursor="pointer",r.title="Кликни, чтобы скопировать",r.addEventListener("click",()=>{navigator.clipboard.writeText(r.innerText).then(()=>{c.classList.add("show"),setTimeout(()=>c.classList.remove("show"),300)})})})},ye=(e,t)=>(n,r)=>{switch(n){case"devices":Se(e,t),ge(e,t);break}};function $e(e){const t=new Set;return Object.values(e).forEach(n=>{Object.values(n.interfaces).forEach(r=>{r.netAddress&&!r.netAddress.startsWith("<")&&t.add(r.netAddress)})}),Array.from(t)}function Ae(e,t){const n=document.createElement("form");n.id="network-form",n.innerHTML="<h3>Настройки сетей</h3>",e.forEach(s=>{const c=document.createElement("div");c.className="network-input";const a=document.createElement("label");a.textContent=`Сеть ${s}:`;const d=document.createElement("input");d.type="text",d.placeholder="Базовый адрес (напр. 192.168.0)",d.dataset.network=s;const f=document.createElement("input");f.type="text",f.placeholder="Маска (напр. 24)",f.dataset.network=s,c.append(a,d,f),n.append(c)});const r=document.createElement("button");r.type="button",r.textContent="Обновить",n.append(r),t.innerHTML="",t.append(n)}function _e(){const e=document.querySelectorAll("#network-form input"),t={};return e.forEach(n=>{const{network:r}=n.dataset;t[r]||(t[r]={}),n.placeholder.includes("Базовый")?t[r].base=n.value.trim():t[r].mask=n.value.trim()}),t}function ke(e,t){const n=JSON.parse(JSON.stringify(e));return Object.entries(t).forEach(([r,{base:s,mask:c}])=>{!s||!c||Object.values(n).forEach(a=>{Object.values(a.interfaces).forEach(d=>{if(d.netAddress===r){d.mask=c;const[f]=d.ip.split(".").slice(-1);if(d.ip=`${s}.${f}`,d.netAddress=`${s}.0`,d.gateway!=="-"){const w=d.gateway.split(".");w.splice(0,3,...s.split(".")),d.gateway=w.join(".")}}})})}),n}const G={isp:{name:"ISP",interfaces:{external:{name:"ens18",ip:"<ВНЕШНИЙ>",mask:"24",gateway:"<ВНЕШНИЙ>",destination:"Интернет",netAddress:""},hqRtr:{name:"ens19",ip:"172.16.4.1",mask:"28",gateway:"-",destination:"HQ-RTR",netAddress:"172.16.4.0"},brRtr:{name:"ens20",ip:"172.16.5.1",mask:"28",gateway:"-",destination:"BR-RTR",netAddress:"172.16.5.0"}}},hqRtr:{name:"HQ-RTR",interfaces:{isp:{name:"ens18",ip:"172.16.4.2",mask:"28",gateway:"172.16.4.1",destination:"ISP",netAddress:"172.16.4.0"},brRtr:{name:"gre1",ip:"10.5.5.1",mask:"30",gateway:"-",destination:"BR-RTR",netAddress:"10.5.5.0"},hqSrv:{name:"VLAN100",ip:"192.168.100.1",mask:"26",gateway:"-",destination:"HQ-SRV",netAddress:"192.168.100.0"},hqCli:{name:"VLAN200",ip:"192.168.200.1",mask:"28",gateway:"-",destination:"HQ-CLI",netAddress:"192.168.200.0"},vlan999:{name:"VLAN999",ip:"192.168.99.1",mask:"29",gateway:"-",destination:"VLAN999 (?)",netAddress:"192.168.99.0"}}},hqSrv:{name:"HQ-SRV",interfaces:{hqRtr:{name:"ens18",ip:"192.168.100.2",mask:"26",gateway:"192.168.100.1",destination:"HQ-RTR",netAddress:"192.168.100.0"}}},hqCli:{name:"HQ-CLI",interfaces:{hqRtr:{name:"ens18",ip:"192.168.200.2",mask:"28",gateway:"192.168.200.1",destination:"HQ-RTR",netAddress:"192.168.200.0"}}},brRtr:{name:"BR-RTR",interfaces:{isp:{name:"ens18",ip:"172.16.5.2",mask:"28",gateway:"172.16.5.1",destination:"ISP",netAddress:"172.16.5.0"},brSrv:{name:"ens19",ip:"192.168.0.1",mask:"27",gateway:"-",destination:"BR-SRV",netAddress:"192.168.0.0"},hqRtr:{name:"gre1",ip:"10.5.5.2",mask:"30",gateway:"-",destination:"HQ-RTR",netAddress:"10.5.5.0"}}},brSrv:{name:"BR-SRV",interfaces:{brRtr:{name:"ens18",ip:"192.168.0.2",mask:"27",gateway:"192.168.0.1",destination:"BR-RTR",netAddress:"192.168.0.0"}}}},Ce=()=>{const e={ipTableContainer:document.getElementById("ip-table-container"),textContainer:document.getElementById("text-container"),networkFormContainer:document.getElementById("network-form-container")},t={devices:[]},n=N(t,ye(e,t));n.devices=G;const r=JSON.parse(JSON.stringify(G)),s=$e(r);Ae(s,e.networkFormContainer),document.querySelector("#network-form button").addEventListener("click",()=>{const c=_e(),a=ke(r,c);console.log(a),n.devices=a})};Ce();
