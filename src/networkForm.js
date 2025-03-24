@@ -1,5 +1,4 @@
 /* eslint-disable no-param-reassign */
-// networkForm.js
 export function getNetworks(devices) {
   const networks = new Set();
   Object.values(devices).forEach((device) => {
@@ -24,17 +23,17 @@ export function createNetworkForm(networks, container) {
     const label = document.createElement('label');
     label.textContent = `Сеть ${network}:`;
 
-    const baseInput = document.createElement('input');
-    baseInput.type = 'text';
-    baseInput.placeholder = 'Базовый адрес (напр. 192.168.0)';
-    baseInput.dataset.network = network;
+    const addressInput = document.createElement('input');
+    addressInput.type = 'text';
+    addressInput.placeholder = 'Адрес сети (напр. 192.168.0.0)';
+    addressInput.dataset.network = network;
 
     const maskInput = document.createElement('input');
     maskInput.type = 'text';
     maskInput.placeholder = 'Маска (напр. 24)';
     maskInput.dataset.network = network;
 
-    div.append(label, baseInput, maskInput);
+    div.append(label, addressInput, maskInput);
     form.append(div);
   });
 
@@ -54,8 +53,8 @@ export function getNetworkData() {
   inputs.forEach((input) => {
     const { network } = input.dataset;
     if (!networkData[network]) networkData[network] = {};
-    if (input.placeholder.includes('Базовый')) {
-      networkData[network].base = input.value.trim();
+    if (input.placeholder.includes('Адрес сети')) {
+      networkData[network].address = input.value.trim();
     } else {
       networkData[network].mask = input.value.trim();
     }
@@ -63,25 +62,60 @@ export function getNetworkData() {
 
   return networkData;
 }
+// networkForm.js
+
+// Преобразование IP в число
+function ipToInt(ip) {
+  return ip.split('.').reduce((acc, octet) => (acc << 8) + parseInt(octet, 10), 0) >>> 0;
+}
+
+// Преобразование числа в IP
+function intToIp(num) {
+  return [
+    (num >>> 24) & 0xFF,
+    (num >>> 16) & 0xFF,
+    (num >>> 8) & 0xFF,
+    num & 0xFF,
+  ].join('.');
+}
+
+// Вычисление хостовой части
+function getHostPart(ipInt, maskLength) {
+  const mask = maskLength ? 0xFFFFFFFF << (32 - maskLength) : 0;
+  return ipInt & ~mask;
+}
 
 export function calculateNewDevices(initialDevices, networkData) {
   const newDevices = JSON.parse(JSON.stringify(initialDevices));
 
-  Object.entries(networkData).forEach(([originalNet, { base, mask }]) => {
-    if (!base || !mask) return;
+  Object.entries(networkData).forEach(([originalNet, data]) => {
+    if (!data.address || !data.mask) return;
+
+    const newNetworkInt = ipToInt(data.address);
+    const newMask = parseInt(data.mask, 10);
 
     Object.values(newDevices).forEach((device) => {
       Object.values(device.interfaces).forEach((intf) => {
         if (intf.netAddress === originalNet) {
-          intf.mask = mask;
-          const [lastOctet] = intf.ip.split('.').slice(-1);
-          intf.ip = `${base}.${lastOctet}`;
-          intf.netAddress = `${base}.0`;
+          // Получаем исходные параметры
+          const originalIpInt = ipToInt(intf.ip);
+          const originalMask = parseInt(intf.mask, 10);
 
+          // Вычисляем новое значение
+          const hostPart = getHostPart(originalIpInt, originalMask);
+          const newIpInt = (newNetworkInt & (0xFFFFFFFF << (32 - newMask))) | hostPart;
+
+          // Обновляем данные
+          intf.ip = intToIp(newIpInt);
+          intf.mask = data.mask.toString();
+          intf.netAddress = data.address;
+
+          // Обновляем шлюз
           if (intf.gateway !== '-') {
-            const gwParts = intf.gateway.split('.');
-            gwParts.splice(0, 3, ...base.split('.'));
-            intf.gateway = gwParts.join('.');
+            const gatewayInt = ipToInt(intf.gateway);
+            const gwHostPart = getHostPart(gatewayInt, originalMask);
+            const newGwInt = (newNetworkInt & (0xFFFFFFFF << (32 - newMask))) | gwHostPart;
+            intf.gateway = intToIp(newGwInt);
           }
         }
       });
