@@ -161,7 +161,6 @@ systemctl restart network
 ip -br a</code></pre>
 <br>
 <p>Настройка статичного ip на HQ-CLI</p>
-<p><code>hostnamectl hostname HQ-CLI.au-team.irpo ; exec bash</code></p>
 <details>
   <summary>Можно не настраивать если у нас есть dhcp</summary>
   <p>Пароль <code>resu</code></p>
@@ -243,6 +242,8 @@ ip -br a</code></pre>
 <p><code>ex</code></p>
 <p><code>wr</code></p>
 <p><code>ex</code></p>
+<p><code>vim /etc/NetworkManager/system-connections/BR-RTR.nmconnection</code></p>
+<p>Добавить в секцию ip-tunnel <code>ttl=64</code></p>
 <p><code>reboot</code></p>
 <br>
 <p>BR-RTR</p>
@@ -265,12 +266,9 @@ ip -br a</code></pre>
 <p><code>ex</code></p>
 <p><code>wr</code></p>
 <p><code>ex</code></p>
+<p><code>vim /etc/NetworkManager/system-connections/HQ-RTR.nmconnection</code></p>
+<p>Добавить в секцию ip-tunnel <code>ttl=64</code></p>
 <p><code>reboot</code></p>
-<br>
-<p>настроим ttl</p>
-<p>HQ-RTR и BR-RTR</p>
-<p><code>vim /etc/NetworkManager/system-connections/gre1.nmconnection</code></p>
-<p><code>ttl=64</code></p>
 <br>
 <h3>Задание 8</h3>
 <p>HQ-RTR</p>
@@ -288,14 +286,20 @@ ip -br a</code></pre>
 <p><code>vim /etc/sysconfig/dhcpd</code></p>
 <p><code>DHCPDARCS = vlan200</code></p>
 <p><code>cp /etc/dhcp/dhcpd.conf.example /etc/dhcp/dhcpd.conf</code></p>
+<br>
 <p><code>vim /etc/dhcp/dhcpd.conf</code></p>
-<p><code>option domain-name “au-team.irpo”;</code></p>
-<p><code>option domain-name-servers ${devices.hqSrv.interfaces.hqRtr.ip};</code></p>
-<p>добавить после</p>
-<p><code>ddns-update-style interim;</code></p>
-<p><code>update-static-leases on;</code></p>
-<p>КОПИРОВАНИЕ В РАЗРАБОТКЕ, НЕ ЗАБЫТЬ ПРО ТАБЫ!!!</p>
+<p>стереть строки (dd):</p>
+<p><code>option domain-name "example.org";</code></p>
+<p><code>option domain-name-servers ns1.example.org, ns2.example.org;</code></p>
+<br>
+<p>В виме ввести <code>:set paste</code> для включения режима вставки</p>
 <p><pre><code>
+option domain-name "au-team.irpo";
+option domain-name-servers ${devices.hqSrv.interfaces.hqRtr.ip};
+
+ddns-update-style interim;
+update-static-leases on;
+
 zone au-team.irpo {
 &#9;primary ${devices.hqSrv.interfaces.hqRtr.ip};
 }
@@ -307,30 +311,20 @@ zone ${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa {
 zone ${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa {
 &#9;primary ${devices.hqSrv.interfaces.hqRtr.ip};
 }
+
+subnet ${devices.hqRtr.interfaces.hqCli.netAddress} netmask ${cidrToMask(devices.hqRtr.interfaces.hqCli.mask)} {
+&#9;range ${devices.hqCli.interfaces.hqRtr.ip} ${getRangeFor3(devices.hqCli.interfaces.hqRtr.ip)};
+&#9;option routers ${devices.hqRtr.interfaces.hqCli.ip};
+}
 </code></pre></p>
-<p>zone au-team.irpo {</p>
-<p> primary ${devices.hqSrv.interfaces.hqRtr.ip};</p>
-<p>}</p>
-<br>
-<p>zone ${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa {</p>
-<p> primary ${devices.hqSrv.interfaces.hqRtr.ip};</p>
-<p>}</p>
-<br>
-<p>zone ${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa {</p>
-<p> primary ${devices.hqSrv.interfaces.hqRtr.ip};</p>
-<p>}</p>
-<br>
-<p>Подсказка: можно выбрать начало “y” и в конце “2” “p”, но можно руками</p>
-<p>меняем строки:</p>
-<p>subnet ${devices.hqRtr.interfaces.hqCli.netAddress} netmask ${cidrToMask(devices.hqRtr.interfaces.hqCli.mask)} {</p>
-<p>	range ${devices.hqCli.interfaces.hqRtr.ip} ${getRangeFor3(devices.hqCli.interfaces.hqRtr.ip)};</p>
-<p>	option routers ${devices.hqRtr.interfaces.hqCli.ip};</p>
+<p>Если нужно, выключить режим вставки <code>:set nopaste</code> </p>
 <br>
 <p><code>systemctl restart dhcpd</code></p>
 <p><code>systemctl enable dhcpd</code></p>
 <br>
 <p>HQ-CLI</p>
 <p>проверка работы dhcp</p>
+<p><code>hostnamectl hostname HQ-CLI.au-team.irpo ; exec bash</code></p>
 <p><code>ip -br a</code></p>
 <br>
 <h3>Задание 10</h3>
@@ -339,61 +333,74 @@ zone ${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa {
 <p><code>apt-get install -y bind</code></p>
 <p><code>cd /var/lib/bind/etc/</code></p>
 <p><code>vim options.conf</code></p>
-<p>скорректировать listen-on { any; };</p>
-<p>listen-on-v6 { none; };</p>
-<p>forwarders { 8.8.8.8; };</p>
-<p>allow-query { any; };</p>
-<p>allow-recursion { any; };</p>
+<p>скорректировать:</p>
+<p><code>listen-on { any; };</code></p>
+<p><code>listen-on-v6 { none; };</code></p>
+<p><code>forwarders { 8.8.8.8; };</code></p>
+<p><code>allow-query { any; };</code></p>
+<p><code>allow-recursion { any; };</code></p>
+<br>
 <p><code>vim rfc1912.conf</code></p>
-<p>Удалить лишнее и оставить</p>
-<p>zone “au-team.irpo” {</p>
-<p>type master;</p>
-<p>file “au-team.irpo”;</p>
-<p>allow-update { any; };</p>
-<p>}</p>
-<p>zone ${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa {</p>
-<p>	type master;</p>
-<p>	file “100.db”;</p>
-<p>allow-update { any; };</p>
-<p>}</p>
-<p>zone ${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa {</p>
-<p>type master;	</p>
-<p>	file “200.db”;</p>
-<p>allow-update { any; };</p>
-<p>}</p>
-<p>сохраняем файл</p>
+<p>В виме ввести <code>:set paste</code> для включения режима вставки</p>
+<p>Удалить лишнее и оставить:</p>
+<p><pre><code>
+zone "au-team.irpo" {
+&#9;type master;
+&#9;file "au-team.db";
+&#9;allow-update { any; };
+};
+
+zone "${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa" {
+&#9;type master;
+&#9;file "100.db";
+&#9;allow-update { any; };
+};
+
+zone "${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa" {
+&#9;type master;
+&#9;file "200.db";
+&#9;allow-update { any; };
+};
+</code></pre></p>
 <p><code>cp zone/localdomain zone/au-team.db</code></p>
 <p><code>cp zone/127.in-addr.arpa zone/100.db</code></p>
+<br>
 <p><code>vim zone/100.db</code></p>
 <p>Убираем лишнее и пишем основные моменты:</p>
-<p>0	IN	SOA	${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa. root.${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa. (...)</p>
-<p>	IN	NS	${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa.</p>
-<p>	IN	A	${devices.hqSrv.interfaces.hqRtr.ip}</p>
-<p>2	IN	PTR	hq-srv.au-team.irpo</p>
-<p>1	IN	PTR	hq-rtr.au-team.irpo</p>
-<p>сохраняем</p>
+<p><pre><code>@&#9;IN&#9;SOA&#9;${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa. root.${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa. (</code></pre></p>
+<br>
+<p><pre><code>&#9;&#9;&#9;)</code></pre></p>
+<p><pre><code>&#9;IN&#9;NS&#9;${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa.</code></pre></p>
+<p><pre><code>&#9;IN&#9;A&#9;${devices.hqSrv.interfaces.hqRtr.ip}</code></pre></p>
+<p><pre><code>2&#9;IN&#9;PTR&#9;hq-srv.au-team.irpo.</code></pre></p>
+<p><pre><code>1&#9;IN&#9;PTR&#9;hq-rtr.au-team.irpo.</code></pre></p>
 <p><code>cp zone/100.db zone/200.db</code></p>
+<br>
 <p><code>vim zone/200.db</code></p>
 <p>Убираем лишнее и пишем основные моменты:</p>
-<p>0	IN	SOA	${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa. root.${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa. (...)</p>
-<p>	IN	NS	${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa.</p>
-<p>	IN	A	${devices.hqSrv.interfaces.hqRtr.ip}</p>
-<p>2	IN	PTR	hq-cli.au-team.irpo</p>
-<p>1	IN	PTR	hq-rtr.au-team.irpo</p>
-<p>сохраняем</p>
+<p><pre><code>@&#9;IN&#9;SOA&#9;${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa. root.${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa. (</code></pre></p>
+<br>
+<p><pre><code>&#9;&#9;&#9;)</code></pre></p>
+<p><pre><code>&#9;IN&#9;NS&#9;${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa.</code></pre></p>
+<p><pre><code>&#9;IN&#9;A&#9;${devices.hqSrv.interfaces.hqRtr.ip}</code></pre></p>
+<p><pre><code>2&#9;IN&#9;PTR&#9;hq-cli.au-team.irpo.</code></pre></p>
+<p><pre><code>1&#9;IN&#9;PTR&#9;hq-rtr.au-team.irpo.</code></pre></p>
+<br>
 <p><code>vim zone/au-team.db</code></p>
 <p>Убираем лишнее и пишем основные моменты:</p>
-<p>0	IN	SOA	hq-srv.au-team.irpo. root.au-team.irpo. (...)</p>
-<p>	IN	NS	hq-srv.au-team.irpo.</p>
-<p>	IN	A	${devices.hqSrv.interfaces.hqRtr.ip}</p>
-<p>hq-rtr	IN	A	${devices.hqRtr.interfaces.hqSrv.ip}</p>
-<p>br-rtr	IN	A	${devices.brRtr.interfaces.brSrv.ip}</p>
-<p>hq-srv	IN	A	${devices.hqSrv.interfaces.hqRtr.ip}</p>
-<p>hq-cli	IN	A	${devices.hqCli.interfaces.hqRtr.ip}</p>
-<p>br-srv	IN	A	${devices.brSrv.interfaces.brRtr.ip}</p>
-<p>wiki	IN	CNAME	hq-rtr.au-team.irpo.</p>
-<p>moodle	IN	CNAME	hq-rtr.au-team.irpo.</p>
-<p>сохраняем</p>
+<p><pre><code>@&#9;IN&#9;SOA&#9;hq-srv.au-team.irpo. root.au-team.irpo. (</code></pre></p>
+<br>
+<p><pre><code>&#9;&#9;&#9;)</code></pre></p>
+<p><pre><code>&#9;IN&#9;NS&#9;hq-srv.au-team.irpo.</code></pre></p>
+<p><pre><code>&#9;IN&#9;A&#9;${devices.hqSrv.interfaces.hqRtr.ip}</code></pre></p>
+<p><pre><code>hq-rtr&#9;IN&#9;A&#9;${devices.hqRtr.interfaces.hqSrv.ip}</code></pre></p>
+<p><pre><code>br-rtr&#9;IN&#9;A&#9;${devices.brRtr.interfaces.brSrv.ip}</code></pre></p>
+<p><pre><code>hq-srv&#9;IN&#9;A&#9;${devices.hqSrv.interfaces.hqRtr.ip}</code></pre></p>
+<p><pre><code>hq-cli&#9;IN&#9;A&#9;${devices.hqCli.interfaces.hqRtr.ip}</code></pre></p>
+<p><pre><code>br-srv&#9;IN&#9;A&#9;${devices.brSrv.interfaces.brRtr.ip}</code></pre></p>
+<p><pre><code>wiki&#9;IN&#9;CNAME&#9;hq-rtr.au-team.irpo.</code></pre></p>
+<p><pre><code>moodle&#9;IN&#9;CNAME&#9;hq-rtr.au-team.irpo.</code></pre></p>
+<br>
 <p><code>rndc-confgen > rndc.key</code></p>
 <p><code>sed -i '6,$d' rndc.key</code></p>
 <p><code>chgrp -R named zone/</code></p>
@@ -406,14 +413,10 @@ zone ${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa {
 <p>BR-RTR</p>
 <p><code>echo -e 'nameserver ${devices.hqSrv.interfaces.hqRtr.ip}\\ndomain au-team.irpo' > /etc/net/ifaces/ens18/resolv.conf</code></p>
 <p><code>systemctl restart network</code></p>
-<p><code>nmtui</code></p>
-<p>перезапустить активные соединения ens</p>
 <br>
 <p>HQ-RTR</p>
 <p><code>echo -e 'nameserver ${devices.hqSrv.interfaces.hqRtr.ip}\\ndomain au-team.irpo' > /etc/net/ifaces/ens18/resolv.conf</code></p>
 <p><code>systemctl restart network</code></p>
-<p><code>nmtui</code></p>
-<p>перезапустить активные соединения ens</p>
 <br>
 <h3>Задание 11</h3>
 <p>HQ-SRV, BR-SRV, HQ-RTR, BR-RTR, HQ-CLI</p>
@@ -449,8 +452,8 @@ zone ${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa {
 <p><code>vim import.sh</code></p>
 <p>добавить #!/bin/bash</p>
 <p>while IFS=',' read -r username password; do</p>
-<p>	samba-tool user create “$username” “$password”</p>
-<p>	samba-tool group addmembers hq “$username”</p>
+<p>	samba-tool user create "$username" "$password"</p>
+<p>	samba-tool group addmembers hq "$username"</p>
 <p>done < /opt/users.csv</p>
 <p>сохраняем</p>
 <p><code>chmod +x /opt/smdscripts/import.sh</code></p>
