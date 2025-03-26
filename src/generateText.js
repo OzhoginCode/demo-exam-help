@@ -23,6 +23,8 @@ const getRangeFor3 = (ip) => {
   return parts.join('.');
 };
 
+const getLastOctet = (ipAddress) => ipAddress.split('.')[3];
+
 export default ({ devices }) => `
 <p>Запуск ISP</p>
 <p>login <code>root</code></p>
@@ -284,7 +286,7 @@ ip -br a</code></pre>
 <p>HQ-RTR</p>
 <p><code>apt-get install -y dhcp-server</code></p>
 <p><code>vim /etc/sysconfig/dhcpd</code></p>
-<p><code>DHCPDARCS = vlan200</code></p>
+<p><code>DHCPDARCS=vlan200</code></p>
 <p><code>cp /etc/dhcp/dhcpd.conf.example /etc/dhcp/dhcpd.conf</code></p>
 <br>
 <p><code>vim /etc/dhcp/dhcpd.conf</code></p>
@@ -372,10 +374,10 @@ zone "${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa"
 <p><pre><code>&#9;&#9;&#9;)</code></pre></p>
 <p><pre><code>&#9;IN&#9;NS&#9;${getReverseZone(devices.hqRtr.interfaces.hqSrv.netAddress)}.in-addr.arpa.</code></pre></p>
 <p><pre><code>&#9;IN&#9;A&#9;${devices.hqSrv.interfaces.hqRtr.ip}</code></pre></p>
-<p><pre><code>2&#9;IN&#9;PTR&#9;hq-srv.au-team.irpo.</code></pre></p>
-<p><pre><code>1&#9;IN&#9;PTR&#9;hq-rtr.au-team.irpo.</code></pre></p>
-<p><code>cp zone/100.db zone/200.db</code></p>
+<p><pre><code>${getLastOctet(devices.hqSrv.interfaces.hqRtr.ip)}&#9;IN&#9;PTR&#9;hq-srv.au-team.irpo.</code></pre></p>
+<p><pre><code>${getLastOctet(devices.hqRtr.interfaces.hqSrv.ip)}&#9;IN&#9;PTR&#9;hq-rtr.au-team.irpo.</code></pre></p>
 <br>
+<p><code>cp zone/100.db zone/200.db</code></p>
 <p><code>vim zone/200.db</code></p>
 <p>Убираем лишнее и пишем основные моменты:</p>
 <p><pre><code>@&#9;IN&#9;SOA&#9;${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa. root.${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa. (</code></pre></p>
@@ -383,8 +385,8 @@ zone "${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa"
 <p><pre><code>&#9;&#9;&#9;)</code></pre></p>
 <p><pre><code>&#9;IN&#9;NS&#9;${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa.</code></pre></p>
 <p><pre><code>&#9;IN&#9;A&#9;${devices.hqSrv.interfaces.hqRtr.ip}</code></pre></p>
-<p><pre><code>2&#9;IN&#9;PTR&#9;hq-cli.au-team.irpo.</code></pre></p>
-<p><pre><code>1&#9;IN&#9;PTR&#9;hq-rtr.au-team.irpo.</code></pre></p>
+<p><pre><code>${getLastOctet(devices.hqCli.interfaces.hqRtr.ip)}&#9;IN&#9;PTR&#9;hq-cli.au-team.irpo.</code></pre></p>
+<p><pre><code>${getLastOctet(devices.hqRtr.interfaces.hqCli.ip)}&#9;IN&#9;PTR&#9;hq-rtr.au-team.irpo.</code></pre></p>
 <br>
 <p><code>vim zone/au-team.db</code></p>
 <p>Убираем лишнее и пишем основные моменты:</p>
@@ -414,7 +416,15 @@ zone "${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa"
 <p><code>echo -e 'nameserver ${devices.hqSrv.interfaces.hqRtr.ip}\\ndomain au-team.irpo' > /etc/net/ifaces/ens18/resolv.conf</code></p>
 <p><code>systemctl restart network</code></p>
 <br>
+<p>BR-SRV</p>
+<p><code>echo -e 'nameserver ${devices.hqSrv.interfaces.hqRtr.ip}\\ndomain au-team.irpo' > /etc/net/ifaces/ens18/resolv.conf</code></p>
+<p><code>systemctl restart network</code></p>
+<br>
 <p>HQ-RTR</p>
+<p><code>echo -e 'nameserver ${devices.hqSrv.interfaces.hqRtr.ip}\\ndomain au-team.irpo' > /etc/net/ifaces/ens18/resolv.conf</code></p>
+<p><code>systemctl restart network</code></p>
+<br>
+<p>HQ-CLI</p>
 <p><code>echo -e 'nameserver ${devices.hqSrv.interfaces.hqRtr.ip}\\ndomain au-team.irpo' > /etc/net/ifaces/ens18/resolv.conf</code></p>
 <p><code>systemctl restart network</code></p>
 <br>
@@ -425,65 +435,58 @@ zone "${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa"
 <h2>Модуль № 2</h2>
 <h3>Задание 1</h3>
 <p>BR-SRV</p>
-<p><code>apt-get update -y</code></p>
 <p><code>apt-get install -y task-samba-dc</code></p>
-<p><code>control krb5-conf-ccache default</code></p>
-<p><code>rm -rf /etc/samba/smb.conf</code></p>
+<p><code>rm -f /etc/samba/smb.conf</code></p>
 <p><code>rm -rf /var/lib/samba/</code></p>
 <p><code>rm -rf /var/cache/samba/</code></p>
 <p><code>mkdir -p /var/lib/samba/sysvol</code></p>
 <p><code>samba-tool domain provision</code></p>
 <p>пароль <code>P@ssw0rd</code></p>
 <p><code>systemctl enable --now samba.service</code></p>
-<p><code>cp /var/lib/samba/pivate/krb5.conf /etc/</code></p>
+<p><code>\\cp -f /var/lib/samba/private/krb5.conf /etc/</code></p>
 <p><code>visudo</code></p>
-<p>добавляем ниже # root ALL=(ALL:ALL) ALL</p>
-<p>%hq ALL=(ALL) NOPASSWD: /bin/cat, /bin/grep, /usr/bin/id</p>
+<p>добавляем ниже <code># root ALL=(ALL:ALL) ALL</code></p>
+<p><code>%hq ALL=(ALL) NOPASSWD: /bin/cat, /bin/grep, /usr/bin/id</code></p>
 <p>сохраняем</p>
 <p><code>vim /opt/users.csv</code></p>
-<p>добавляем user1.hq.P@ssw0rd</p>
-<p>user2.hq.P@ssw0rd</p>
-<p>user3.hq.P@ssw0rd</p>
-<p>user4.hq.P@ssw0rd</p>
-<p>user5.hq.P@ssw0rd</p>
+<p>добавляем (проследить, чтобы без пробелов)</p>
+<p><pre><code>user1.hq;P@ssw0rd
+user2.hq;P@ssw0rd
+user3.hq;P@ssw0rd
+user4.hq;P@ssw0rd
+user5.hq;P@ssw0rd
+</code></pre></p>
 <p>сохраняем</p>
 <p><code>mkdir -p /opt/smdscripts</code></p>
-<p><code>cd /opt/smdscripts</code></p>
-<p><code>vim import.sh</code></p>
-<p>добавить #!/bin/bash</p>
-<p>while IFS=',' read -r username password; do</p>
-<p>	samba-tool user create "$username" "$password"</p>
-<p>	samba-tool group addmembers hq "$username"</p>
-<p>done < /opt/users.csv</p>
+<p><code>vim /opt/smdscripts/import.sh</code></p>
+<p><pre><code>#!/bin/bash
+while IFS=';' read -r username password; do
+&#9;samba-tool user create "$username" "$password"
+&#9;samba-tool group addmembers hq "$username"
+done < /opt/five_users.csv
+</code></pre></p>
 <p>сохраняем</p>
 <p><code>chmod +x /opt/smdscripts/import.sh</code></p>
 <p><code>samba-tool group create hq</code></p>
-<p><code>./import.sh</code></p>
+<p><code>/opt/smdscripts/import.sh</code></p>
 <p><code>samba-tool dns add br-srv.au-team.irpo au-team.irpo hq-rtr A ${devices.hqRtr.interfaces.hqSrv.ip} -U Administrator</code></p>
-<p>пароль P@$$word</p>
+<p>пароль <code>P@ssw0rd</code></p>
 <p><code>samba-tool dns add br-srv.au-team.irpo au-team.irpo wiki CNAME hq-rtr.au-team.irpo -U Administrator</code></p>
-<p>пароль P@$$word</p>
+<p>пароль <code>P@ssw0rd</code></p>
 <p><code>samba-tool dns add br-srv.au-team.irpo au-team.irpo moodle CNAME hq-rtr.au-team.irpo -U Administrator</code></p>
-<p>пароль P@$$word</p>
+<p>пароль <code>P@ssw0rd</code></p>
 <br>
 <p>HQ-RTR</p>
-<p><code>vim /etc/chrony.conf</code></p>
-<p>добавляем server</p>
-<p>${devices.hqRtr.interfaces.brRtr.ip}</p>
-<p>allow ${devices.brRtr.interfaces.brSrv.netAddress}/${devices.brRtr.interfaces.brSrv.mask}</p>
-<p>allow ${devices.hqRtr.interfaces.hqSrv.netAddress}/${devices.hqRtr.interfaces.hqSrv.mask}</p>
-<p>allow ${devices.hqRtr.interfaces.hqCli.netAddress}/${devices.hqRtr.interfaces.hqCli.mask}</p>
-<p>local stratum 5</p>
-<p>сохраняем</p>
-<p><code>systemctl restart chronyd.service</code></p>
+<p>Надо предварительно настроить chrony???</p>
 <p><code>systemctl restart dhcpd</code></p>
 <br>
 <p>HQ-CLI</p>
-<p>Запускаем центр управления > центр управления системой</p>
-<p>пароль <code>toor</code></p>
-<p>Пользователи > Аутентификация</p>
-<p>Активируем Домен AD</p>
-<p>Рабочая группа: AU-TEAM</p>
+<p><code>echo -e 'search au-team.irpo\\nnameserver ${devices.brSrv.interfaces.brRtr.ip}' > /etc/net/ifaces/ens18/resolv.conf</code></p>
+<p><code>systemctl restart network</code></p>
+<p>Запускаем Control Center > пишем в поиске <code>acc</code> > <code>toor</code></p>
+<p>Users > Authentication</p>
+<p>Активируем Active Directory domain</p>
+<p>Workgroup: au-team</p>
 <p>Применить</p>
 <p>Пароль <code>P@ssw0rd</code></p>
 <p>ок</p>
@@ -527,6 +530,28 @@ zone "${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa"
 <p>проверяем что пространство монтируется <code>mount -a</code></p>
 <p>ошибок не должно быть</p>
 <br>
+<h3>Задание 3</h3>
+<p>HQ-RTR</p>
+<p><code>apt-get install -y chrony</code></p>
+<p><code>vim /etc/chrony.conf</code></p>
+<p>В виме ввести <code>:set paste</code> для включения режима вставки</p>
+<p><pre><code>
+# Serve time even if not synchronized to a time source.
+server ${devices.hqRtr.interfaces.hqSrv.ip} iburst
+local stratum 5
+
+allow ${devices.hqRtr.interfaces.hqSrv.netAddress}/${devices.hqRtr.interfaces.hqSrv.mask}
+allow ${devices.hqRtr.interfaces.hqCli.netAddress}/${devices.hqRtr.interfaces.hqCli.mask}
+allow ${devices.brRtr.interfaces.brSrv.netAddress}/${devices.brRtr.interfaces.brSrv.mask}
+</code></pre></p>
+<p><code>systemctl restart chronyd</code></p>
+<br>
+<p>HQ-SRV, HQ-CLI, BR-RTR, BR-SRV</p>
+<p><code>apt-get install -y chrony</code></p>
+<p><code>echo "server 192.168.1.1 iburst" >> /etc/chrony.conf</code></p>
+<p><code>systemctl restart chronyd</code></p>
+<p>Проверка:</p>
+<p><code>chronyc tracking</code></p>
 <h3>Задание 4</h3>
 <p>BR-SRV</p>
 <p><code>apt-get install -y ansible</code></p>
@@ -542,11 +567,101 @@ zone "${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa"
 <p>проверка</p>
 <p><code>ansible all -m ping</code></p>
 <br>
+<h3>Задание 5</h3>
+<p>BR-SRV</p>
+<p><code>apt-get install -y docker-io docker-compose</code></p>
+<p><code>systemctl enable --now docker</code></p>
+<p><code>vim wiki.yml</code></p>
+<p><code>:set paste</code></p>
+<p><pre><code>services:
+  wiki:
+    image: mediawiki
+    container_name: mediawiki
+    restart: always
+    ports:
+      - 8080:80
+    links:
+      - mariadb
+    volumes:
+      - images:/var/www/html/images
+#      - ~/LocalSettings.php:/var/www/html/LocalSettings.php
+  mariadb:
+    image: mariadb
+    container_name: mariadb
+    hostname: mariadb
+    restart: always
+    environment:
+      MYSQL_DATABASE: mediawiki
+      MYSQL_USER: wiki
+      MYSQL_PASSWORD: WikiP@ssw0rd
+      MYSQL_RANDOM_ROOT_PASSWORD: 1
+    volumes:
+      - db:/var/lib/mysql
+
+volumes:
+  images:
+  db:
+</code></pre></p>
+<p><code>docker compose -f wiki.yml up -d</code></p>
+<p>HQ-CLI</p>
+<p>Переходим в Яндекс браузере на br-srv (или айпи, надо проверять)</p>
+<p>Нажимаем complete, выбираем русский язык, потом настраиваем mariadb: справка <code>mariadb</code>, имя БД <code>mediawiki</code>, имя пользователя БД <code>wiki</code> и пароль <code>WikiP@ssw0rd</code></p>
+<p>Ставим галочку. справка: <code>wiki</code>; то же, что и имя вики; Admin и пароль <code>WikiP@ssw0rd</code>)</p>
+<p>Выбираем "Хватит уже, просто установите вики"</p>
+<p><code>scp -P 2024 /home/user/Downloads/LocalSettings.php sshuser@${devices.brSrv.interfaces.brRtr.ip}:/root/</code></p>
+<p>BR-SRV</p>
+<p>Раскомментировать строчку в wiki.yml</p>
+<br>
+<h3>Задание 6</h3>
+<p>HQ-RTR</p>
+<p><code>iptables -t nat -A PREROUTING -p tcp --dport 22 -j DNAT --to-destination ${devices.hqSrv.interfaces.hqRtr.ip}:2024</code></p>
+<p><code>iptables-save >> /etc/sysconfig/iptables</code></p>
+<p>BR-RTR</p>
+<p><code>iptables -t nat -A PREROUTING -p tcp --dport 80 -j DNAT --to-destination ${devices.brSrv.interfaces.brRtr.ip}:8080</code></p>
+<p><code>iptables -t nat -A PREROUTING -p tcp --dport 22 -j DNAT --to-destination ${devices.brSrv.interfaces.brRtr.ip}:2024</code></p>
+<p><code>iptables-save >> /etc/sysconfig/iptables</code></p>
+<br>
+<h3>Задание 8</h3>
+<p>HQ-RTR</p>
+<p><code>apt-get install -y nginx</code></p>
+<p><code>vim /etc/nginx/sites-available.d/proxy.conf</code></p>
+<p><pre><code>
+server {
+  listen 80;
+  server_name moodle.au-team.irpo;
+
+  location / {
+    proxy_pass http://${devices.hqSrv.interfaces.hqRtr.ip};
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+}
+
+server {
+  listen 80;
+  server_name wiki.au-team.irpo;
+
+  location / {
+    proxy_pass http://${devices.brSrv.interfaces.brRtr.ip};
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+}
+</p></pre></code>
+<br>
+<p><code>ln -s /etc/nginx/sites-available.d/proxy.conf /etc/nginx/sites-enabled.d/</code></p>
+<p>Проверка: <code>nginx -t</code></p>
+<p><code>systemctl restart nginx</code></p>
+<p><code>systemctl enable --now nginx</code></p>
+<br>
 <h3>Задание 9</h3>
 <p>HQ-CLI</p>
 <p><code>su -</code></p>
 <p><code>apt-get update</code></p>
 <p><code>apt-get install -y yandex-browser-stable</code></p>
-<p><code>reboot</code></p>
 <br>
 `;

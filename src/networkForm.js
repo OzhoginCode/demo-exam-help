@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise */
 /* eslint-disable no-param-reassign */
 export function getNetworks(devices) {
   const networks = new Set();
@@ -62,14 +63,11 @@ export function getNetworkData() {
 
   return networkData;
 }
-// networkForm.js
 
-// Преобразование IP в число
 function ipToInt(ip) {
   return ip.split('.').reduce((acc, octet) => (acc << 8) + parseInt(octet, 10), 0) >>> 0;
 }
 
-// Преобразование числа в IP
 function intToIp(num) {
   return [
     (num >>> 24) & 0xFF,
@@ -79,7 +77,6 @@ function intToIp(num) {
   ].join('.');
 }
 
-// Вычисление хостовой части
 function getHostPart(ipInt, maskLength) {
   const mask = maskLength ? 0xFFFFFFFF << (32 - maskLength) : 0;
   return ipInt & ~mask;
@@ -97,20 +94,16 @@ export function calculateNewDevices(initialDevices, networkData) {
     Object.values(newDevices).forEach((device) => {
       Object.values(device.interfaces).forEach((intf) => {
         if (intf.netAddress === originalNet) {
-          // Получаем исходные параметры
           const originalIpInt = ipToInt(intf.ip);
           const originalMask = parseInt(intf.mask, 10);
 
-          // Вычисляем новое значение
           const hostPart = getHostPart(originalIpInt, originalMask);
           const newIpInt = (newNetworkInt & (0xFFFFFFFF << (32 - newMask))) | hostPart;
 
-          // Обновляем данные
           intf.ip = intToIp(newIpInt);
           intf.mask = data.mask.toString();
           intf.netAddress = data.address;
 
-          // Обновляем шлюз
           if (intf.gateway !== '-') {
             const gatewayInt = ipToInt(intf.gateway);
             const gwHostPart = getHostPart(gatewayInt, originalMask);
