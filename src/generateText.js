@@ -27,18 +27,20 @@ const getLastOctet = (ipAddress) => ipAddress.split('.')[3];
 
 export default ({ devices }) => `
 <p>Запуск ISP</p>
-<p>login <code>root</code></p>
+<p>Login <code>root</code></p>
 <p>Password <code>toor</code></p>
 <p><code>hostnamectl hostname ISP ; exec bash</code></p>
 <p>Накатываем обновления</p>
-<p><code>apt-get update</code></p>
-<p><code>apt-get install -y NetworkManager-tui iptables</code></p>
-<p><code>systemctl enable --now NetworkManager</code></p>
+<p><pre><code>apt-get update
+apt-get install -y NetworkManager-tui iptables
+systemctl enable --now NetworkManager
+</code></pre></p>
 <p><code>nmtui</code></p>
-<p>настраиваем первый интерфейс</p>
-<p>задаем имя профиля в соответствии с номером оборудования, например HQ-RTR</p>
-<p>выставляем ручной ip для ${devices.isp.interfaces.hqRtr.name}: <code>${devices.isp.interfaces.hqRtr.ip}/${devices.isp.interfaces.hqRtr.mask}</code></p>
-<p>аналогично настраиваем ${devices.isp.interfaces.brRtr.name}: <code>${devices.isp.interfaces.brRtr.ip}/${devices.isp.interfaces.brRtr.mask}</code></p>
+<p>настраиваем два интерфейса:</p>
+<p>имя профиля HQ-RTR</p>
+<p>${devices.isp.interfaces.hqRtr.name}: <code>${devices.isp.interfaces.hqRtr.ip}/${devices.isp.interfaces.hqRtr.mask}</code></p>
+<p>имя профиля BR-RTR</p>
+<p>${devices.isp.interfaces.brRtr.name}: <code>${devices.isp.interfaces.brRtr.ip}/${devices.isp.interfaces.brRtr.mask}</code></p>
 <p>проверяем:</p>
 <p><code>ip -br a</code></p>
 <p>настраиваем маршрутизацию</p>
@@ -46,76 +48,77 @@ export default ({ devices }) => `
 <p><code>sed -i 's/^net\\.ipv4\\.ip_forward *= *.*/net.ipv4.ip_forward = 1/' /etc/net/sysctl.conf</code></p>
 <p><code>systemctl restart network</code></p>
 <p>настраиваем nat</p>
-<p><code>iptables -t nat -j MASQUERADE -A POSTROUTING -o ens18</code></p>
-<p><code>iptables-save > /etc/sysconfig/iptables</code></p>
-<p><code>systemctl enable iptables --now</code></p>
+<p><pre><code>iptables -t nat -j MASQUERADE -A POSTROUTING -o ens18
+iptables-save > /etc/sysconfig/iptables
+systemctl enable iptables --now
+</code></pre></p>
 <br>
 <p>Запуск HQ-RTR</p>
 <p><code>hostnamectl hostname HQ-RTR.au-team.irpo ; exec bash</code></p>
-<p>Указываем статичный ipv4 адрес для ${devices.hqRtr.interfaces.isp.name}</p>
-<p><code>sed -i 's/dhcp4/static/g; s/dhcp/static/g' /etc/net/ifaces/${devices.hqRtr.interfaces.isp.name}/options</code></p>
-<p>Настраиваем IP-адрес</p>
-<p><code>echo '${devices.hqRtr.interfaces.isp.ip}/${devices.hqRtr.interfaces.isp.mask}' > /etc/net/ifaces/${devices.hqRtr.interfaces.isp.name}/ipv4address</code></p>
-<p>Настраиваем шлюз</p>
-<p><code>echo 'default via ${devices.isp.interfaces.hqRtr.ip}' > /etc/net/ifaces/${devices.hqRtr.interfaces.isp.name}/ipv4route</code></p>
-<p>Указываем DNS</p>
-<p><code>echo 'nameserver 8.8.8.8' > /etc/net/ifaces/${devices.hqRtr.interfaces.isp.name}/resolv.conf</code></p>
-<p><code>sed -i 's/^net\\.ipv4\\.ip_forward *= *.*/net.ipv4.ip_forward = 1/' /etc/net/sysctl.conf</code></p>
-<p><code>iptables -t nat -j MASQUERADE -A POSTROUTING</code></p>
-<p><code>iptables-save > /etc/sysconfig/iptables</code></p>
-<p><code>systemctl enable iptables --now</code></p>
-<p><code>systemctl restart network</code></p>
-<p>Накатываем обновления <code>apt-get update</code></p>
-<p><code>apt-get install -y NetworkManager-tui</code></p>
-<p><code>systemctl enable --now NetworkManager</code></p>
+<p>Настраиваем статичный IP и iptables</p>
+<p><pre><code>sed -i 's/dhcp4/static/g; s/dhcp/static/g' /etc/net/ifaces/${devices.hqRtr.interfaces.isp.name}/options
+echo '${devices.hqRtr.interfaces.isp.ip}/${devices.hqRtr.interfaces.isp.mask}' > /etc/net/ifaces/${devices.hqRtr.interfaces.isp.name}/ipv4address
+echo 'default via ${devices.isp.interfaces.hqRtr.ip}' > /etc/net/ifaces/${devices.hqRtr.interfaces.isp.name}/ipv4route
+echo 'nameserver 8.8.8.8' > /etc/net/ifaces/${devices.hqRtr.interfaces.isp.name}/resolv.conf
+sed -i 's/^net\\.ipv4\\.ip_forward *= *.*/net.ipv4.ip_forward = 1/' /etc/net/sysctl.conf
+iptables -t nat -j MASQUERADE -A POSTROUTING
+iptables-save > /etc/sysconfig/iptables
+systemctl enable iptables --now
+systemctl restart network
+ip -br a
+</code></pre></p>
+<p>Устанавливаем NetworkManager</p>
+<p><pre><code>apt-get update
+apt-get install -y NetworkManager-tui
+systemctl enable --now NetworkManager
+</code></pre></p>
 <br>
 <p>Запуск BR-RTR</p>
 <p><code>hostnamectl hostname BR-RTR.au-team.irpo ; exec bash</code></p>
-<p>Указываем статичный ipv4 адрес для ${devices.brRtr.interfaces.isp.name}</p>
-<p><code>sed -i 's/dhcp4/static/g; s/dhcp/static/g' /etc/net/ifaces/${devices.brRtr.interfaces.isp.name}/options</code></p>
-<p>Настраиваем IP-адрес</p>
-<p><code>echo '${devices.brRtr.interfaces.isp.ip}/${devices.brRtr.interfaces.isp.mask}' > /etc/net/ifaces/${devices.brRtr.interfaces.isp.name}/ipv4address</code></p>
-<p>Настраиваем шлюз</p>
-<p><code>echo 'default via ${devices.isp.interfaces.brRtr.ip}' > /etc/net/ifaces/${devices.brRtr.interfaces.isp.name}/ipv4route</code></p>
-<p>Указываем DNS</p>
-<p><code>echo 'nameserver 8.8.8.8' > /etc/net/ifaces/${devices.brRtr.interfaces.isp.name}/resolv.conf</code></p>
-<p><code>sed -i 's/^net\\.ipv4\\.ip_forward *= *.*/net.ipv4.ip_forward = 1/' /etc/net/sysctl.conf</code></p>
-<p><code>iptables -t nat -j MASQUERADE -A POSTROUTING</code></p>
-<p><code>iptables-save > /etc/sysconfig/iptables</code></p>
-<p><code>systemctl enable iptables --now</code></p>
-<p><code>systemctl restart network</code></p>
-<p>Накатываем обновления <code>apt-get update</code></p>
-<p><code>apt-get install -y NetworkManager-tui</code></p>
-<p><code>systemctl enable --now NetworkManager</code></p>
+<p>Настраиваем статичный IP и iptables</p>
+<p><pre><code>sed -i 's/dhcp4/static/g; s/dhcp/static/g' /etc/net/ifaces/${devices.brRtr.interfaces.isp.name}/options
+echo '${devices.brRtr.interfaces.isp.ip}/${devices.brRtr.interfaces.isp.mask}' > /etc/net/ifaces/${devices.brRtr.interfaces.isp.name}/ipv4address
+echo 'default via ${devices.isp.interfaces.brRtr.ip}' > /etc/net/ifaces/${devices.brRtr.interfaces.isp.name}/ipv4route
+echo 'nameserver 8.8.8.8' > /etc/net/ifaces/${devices.brRtr.interfaces.isp.name}/resolv.conf
+sed -i 's/^net\\.ipv4\\.ip_forward *= *.*/net.ipv4.ip_forward = 1/' /etc/net/sysctl.conf
+iptables -t nat -j MASQUERADE -A POSTROUTING
+iptables-save > /etc/sysconfig/iptables
+systemctl enable iptables --now
+systemctl restart network
+ip -br a
+</code></pre></p>
+<p>Устанавливаем NetworkManager</p>
+<p><pre><code>apt-get update
+apt-get install -y NetworkManager-tui
+systemctl enable --now NetworkManager
+</code></pre></p>
 <p>запускаем <code>nmtui</code></p>
 <p>редактируем 1 соединение ens19</p>
-<p>имя профиля ставим BR-SRV</p>
+<p>имя профиля <code>BR-SRV</code></p>
 <p>ip <code>${devices.brRtr.interfaces.brSrv.ip}/${devices.brRtr.interfaces.brSrv.mask}</code></p>
 <p>перезагружаем соединение BR-SRV</p>
 <br>
-<p>Запуск консоли BR-SRV</p>
+<p>Запуск BR-SRV</p>
 <p><code>hostnamectl hostname BR-SRV.au-team.irpo ; exec bash</code></p>
-<p>Указываем статичный ipv4 адрес для ${devices.brSrv.interfaces.brRtr.name}</p>
-<p><code>sed -i 's/dhcp4/static/g; s/dhcp/static/g' /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/options</code></p>
-<p>Настраиваем IP-адрес</p>
-<p><code>echo '${devices.brSrv.interfaces.brRtr.ip}/${devices.brSrv.interfaces.brRtr.mask}' > /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/ipv4address</code></p>
-<p>Настраиваем шлюз</p>
-<p><code>echo 'default via ${devices.brRtr.interfaces.brSrv.ip}' > /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/ipv4route</code></p>
-<p>Указываем DNS</p>
-<p><code>echo 'nameserver 8.8.8.8' > /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/resolv.conf</code></p>
-<p><code>systemctl restart network</code></p>
+<p>Настраиваем статичный IP</p>
+<p><pre><code>sed -i 's/dhcp4/static/g; s/dhcp/static/g' /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/options
+echo '${devices.brSrv.interfaces.brRtr.ip}/${devices.brSrv.interfaces.brRtr.mask}' > /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/ipv4address
+echo 'default via ${devices.brRtr.interfaces.brSrv.ip}' > /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/ipv4route
+echo 'nameserver 8.8.8.8' > /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/resolv.conf
+systemctl restart network
+ip -br a
+</code></pre></p>
 <br>
-<p>Запуск консоли HQ-SRV</p>
+<p>Запуск HQ-SRV</p>
 <p><code>hostnamectl hostname HQ-SRV.au-team.irpo ; exec bash</code></p>
-<p>Указываем статичный ipv4 адрес для ${devices.hqSrv.interfaces.hqRtr.name}</p>
-<p><code>sed -i 's/dhcp4/static/g; s/dhcp/static/g' /etc/net/ifaces/${devices.hqSrv.interfaces.hqRtr.name}/options</code></p>
-<p>Настраиваем IP-адрес</p>
-<p><code>echo '${devices.hqSrv.interfaces.hqRtr.ip}/${devices.hqSrv.interfaces.hqRtr.mask}' > /etc/net/ifaces/${devices.hqSrv.interfaces.hqRtr.name}/ipv4address</code></p>
-<p>Настраиваем шлюз</p>
-<p><code>echo 'default via ${devices.hqSrv.interfaces.hqRtr.gateway}' > /etc/net/ifaces/${devices.hqSrv.interfaces.hqRtr.name}/ipv4route</code></p>
-<p>Указываем DNS</p>
-<p><code>echo 'nameserver 8.8.8.8' > /etc/net/ifaces/${devices.hqSrv.interfaces.hqRtr.name}/resolv.conf</code></p>
-<p><code>systemctl restart network</code></p>
+<p>Настраиваем статичный IP</p>
+<p><pre><code>sed -i 's/dhcp4/static/g; s/dhcp/static/g' /etc/net/ifaces/${devices.hqSrv.interfaces.hqRtr.name}/options
+echo '${devices.hqSrv.interfaces.hqRtr.ip}/${devices.hqSrv.interfaces.hqRtr.mask}' > /etc/net/ifaces/${devices.hqSrv.interfaces.hqRtr.name}/ipv4address
+echo 'default via ${devices.hqSrv.interfaces.hqRtr.gateway}' > /etc/net/ifaces/${devices.hqSrv.interfaces.hqRtr.name}/ipv4route
+echo 'nameserver 8.8.8.8' > /etc/net/ifaces/${devices.hqSrv.interfaces.hqRtr.name}/resolv.conf
+systemctl restart network
+ip -br a
+</code></pre></p>
 <br>
 <h3>Задание 3</h3>
 <p>HQ-SRV и BR-SRV</p>
@@ -142,7 +145,7 @@ export default ({ devices }) => `
 <p>дополнить строку wheel пользователем net_admin</p>
 <br>
 <h3>Задание 4</h3>
-<p>Запуск консоли HQ-RTR</p>
+<p>Запуск HQ-RTR</p>
 <pre><code>apt-get install -y openvswitch
 systemctl enable --now openvswitch
 ovs-vsctl add-br HQ-SW
@@ -160,7 +163,8 @@ echo '${devices.hqRtr.interfaces.hqSrv.ip}/${devices.hqRtr.interfaces.hqSrv.mask
 echo '${devices.hqRtr.interfaces.hqCli.ip}/${devices.hqRtr.interfaces.hqCli.mask}' >> /etc/net/ifaces/vlan200/ipv4address
 echo '${devices.hqRtr.interfaces.vlan999.ip}/${devices.hqRtr.interfaces.vlan999.mask}' >> /etc/net/ifaces/vlan999/ipv4address
 systemctl restart network
-ip -br a</code></pre>
+ip -br a
+</code></pre>
 <br>
 <p>Настройка статичного ip на HQ-CLI</p>
 <details>
