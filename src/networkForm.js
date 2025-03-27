@@ -1,5 +1,18 @@
 /* eslint-disable no-bitwise */
 /* eslint-disable no-param-reassign */
+export function getNetworks(devices) {
+  const set = new Set();
+
+  Object.values(devices).forEach((device) => {
+    Object.values(device.interfaces).forEach(({ netAddress, netName, mask }) => {
+      if (netName === 'external') return;
+
+      set.add(JSON.stringify({ netAddress, netName, mask }));
+    });
+  });
+
+  return Array.from(set).map((item) => JSON.parse(item));
+}
 
 export function createNetworkForm(networks, container) {
   const form = document.createElement('form');
@@ -11,17 +24,17 @@ export function createNetworkForm(networks, container) {
     div.className = 'network-input';
 
     const label = document.createElement('label');
-    label.textContent = `Сеть ${network}:`;
+    label.textContent = `Сеть ${network.netName}:`;
 
     const addressInput = document.createElement('input');
     addressInput.type = 'text';
-    addressInput.placeholder = 'Адрес сети (напр. 192.168.0.0)';
-    addressInput.dataset.network = network;
+    addressInput.placeholder = `Адрес сети (${network.netAddress})`;
+    addressInput.dataset.netAddress = network.netAddress;
 
     const maskInput = document.createElement('input');
     maskInput.type = 'text';
-    maskInput.placeholder = 'Маска (напр. 24)';
-    maskInput.dataset.network = network;
+    maskInput.placeholder = `Маска (${network.mask})`;
+    maskInput.dataset.netAddress = network.netAddress;
 
     div.append(label, addressInput, maskInput);
     form.append(div);
@@ -41,12 +54,12 @@ export function getNetworkData() {
   const networkData = {};
 
   inputs.forEach((input) => {
-    const { network } = input.dataset;
-    if (!networkData[network]) networkData[network] = {};
+    const { netAddress } = input.dataset;
+    if (!networkData[netAddress]) networkData[netAddress] = {};
     if (input.placeholder.includes('Адрес сети')) {
-      networkData[network].address = input.value.trim();
+      networkData[netAddress].address = input.value.trim();
     } else {
-      networkData[network].mask = input.value.trim();
+      networkData[netAddress].mask = input.value.trim();
     }
   });
 

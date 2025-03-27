@@ -18,5 +18,5 @@ rules:
   object-curly-newline:
     - error
     - multiline: true
-      minProperties: 7
+      minProperties: 8
       consistent: true
