@@ -3,7 +3,7 @@ import onChange from 'on-change';
 
 import render from './render.js';
 
-import { getNetworks, createNetworkForm, getNetworkData, calculateNewDevices } from './networkForm.js';
+import { createNetworkForm, getNetworkData, calculateNewDevices } from './networkForm.js';
 
 const devices = {
   isp: {
@@ -52,6 +52,8 @@ const devices = {
   },
 };
 
+const networks = ['ISP-HQ', 'ISP-BR', 'GRE', 'CLI-Net (vlan100)', 'SRV-Net (vlan200)', 'vlan999', 'BR-Net'];
+
 const app = () => {
   const elements = {
     ipTableContainer: document.getElementById('ip-table-container'),
@@ -69,7 +71,6 @@ const app = () => {
   state.devices = devices;
 
   const initialDevices = JSON.parse(JSON.stringify(devices));
-  const networks = getNetworks(initialDevices);
   createNetworkForm(networks, elements.networkFormContainer);
 
   // @ts-ignore

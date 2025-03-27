@@ -299,8 +299,7 @@ ip -br a
 <p><code>option domain-name-servers ns1.example.org, ns2.example.org;</code></p>
 <br>
 <p>В виме ввести <code>:set paste</code> для включения режима вставки</p>
-<p><pre><code>
-option domain-name "au-team.irpo";
+<p><pre><code>option domain-name "au-team.irpo";
 option domain-name-servers ${devices.hqSrv.interfaces.hqRtr.ip};
 
 ddns-update-style interim;
@@ -321,8 +320,7 @@ zone ${getReverseZone(devices.hqRtr.interfaces.hqCli.netAddress)}.in-addr.arpa {
 subnet ${devices.hqRtr.interfaces.hqCli.netAddress} netmask ${cidrToMask(devices.hqRtr.interfaces.hqCli.mask)} {
 &#9;range ${devices.hqCli.interfaces.hqRtr.ip} ${getRangeFor3(devices.hqCli.interfaces.hqRtr.ip)};
 &#9;option routers ${devices.hqRtr.interfaces.hqCli.ip};
-}
-</code></pre></p>
+}</code></pre></p>
 <p>Если нужно, выключить режим вставки <code>:set nopaste</code> </p>
 <br>
 <p><code>systemctl restart dhcpd</code></p>

@@ -1,16 +1,5 @@
 /* eslint-disable no-bitwise */
 /* eslint-disable no-param-reassign */
-export function getNetworks(devices) {
-  const networks = new Set();
-  Object.values(devices).forEach((device) => {
-    Object.values(device.interfaces).forEach((intf) => {
-      if (intf.netAddress && !intf.netAddress.startsWith('<')) {
-        networks.add(intf.netAddress);
-      }
-    });
-  });
-  return Array.from(networks);
-}
 
 export function createNetworkForm(networks, container) {
   const form = document.createElement('form');
