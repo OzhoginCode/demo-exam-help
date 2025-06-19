@@ -104,3 +104,29 @@ button:hover {
 .code-copy-toast.show {
   opacity: 1;
 }
+
+.network-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.network-input label {
+  min-width: 120px;
+  margin-bottom: 0;
+}
+
+h4 {
+  margin: 16px 0 8px 0;
+  color: #2d3748;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+#vlan100-name,
+#vlan200-name,
+#vlan999-name {
+  margin-bottom: 8px;
+  width: 200px;
+}

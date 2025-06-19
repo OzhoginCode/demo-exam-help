@@ -64,6 +64,8 @@ iptables-save > /etc/sysconfig/iptables
 systemctl enable iptables --now
 systemctl restart network
 ip -br a
+ping -c 1 ${devices.isp.interfaces.hqRtr.ip}
+ping -c 1 8.8.8.8
 </code></pre></p>
 <p>Устанавливаем NetworkManager</p>
 <p><pre><code>apt-get update
@@ -84,6 +86,8 @@ iptables-save > /etc/sysconfig/iptables
 systemctl enable iptables --now
 systemctl restart network
 ip -br a
+ping -c 1 ${devices.isp.interfaces.brRtr.ip}
+ping -c 1 8.8.8.8
 </code></pre></p>
 <p>Устанавливаем NetworkManager</p>
 <p><pre><code>apt-get update
@@ -105,6 +109,8 @@ echo 'default via ${devices.brRtr.interfaces.brSrv.ip}' > /etc/net/ifaces/${devi
 echo 'nameserver 8.8.8.8' > /etc/net/ifaces/${devices.brSrv.interfaces.brRtr.name}/resolv.conf
 systemctl restart network
 ip -br a
+ping -c 1 ${devices.brRtr.interfaces.brSrv.ip}
+ping -c 1 8.8.8.8
 </code></pre></p>
 <br>
 <p>Запуск HQ-SRV</p>
@@ -116,6 +122,8 @@ echo 'default via ${devices.hqSrv.interfaces.hqRtr.gateway}' > /etc/net/ifaces/$
 echo 'nameserver 8.8.8.8' > /etc/net/ifaces/${devices.hqSrv.interfaces.hqRtr.name}/resolv.conf
 systemctl restart network
 ip -br a
+ping -c 1 ${devices.hqSrv.interfaces.hqRtr.gateway}
+ping -c 1 8.8.8.8
 </code></pre></p>
 <br>
 <h3>Задание 3</h3>
@@ -148,18 +156,18 @@ ip -br a
 systemctl enable --now openvswitch
 ovs-vsctl add-br HQ-SW
 ovs-vsctl add-port HQ-SW ens19
-ovs-vsctl add-port HQ-SW vlan100 tag=100 -- set interface vlan100 type=internal
-ovs-vsctl add-port HQ-SW vlan200 tag=200 -- set interface vlan200 type=internal
-ovs-vsctl add-port HQ-SW vlan999 tag=999 -- set interface vlan999 type=internal
-mkdir /etc/net/ifaces/vlan100
-mkdir /etc/net/ifaces/vlan200
-mkdir /etc/net/ifaces/vlan999
-cp /etc/net/ifaces/ens18/options /etc/net/ifaces/vlan100/options
-cp /etc/net/ifaces/ens18/options /etc/net/ifaces/vlan200/options
-cp /etc/net/ifaces/ens18/options /etc/net/ifaces/vlan999/options
-echo '${devices.hqRtr.interfaces.hqSrv.ip}/${devices.hqRtr.interfaces.hqSrv.mask}' >> /etc/net/ifaces/vlan100/ipv4address
-echo '${devices.hqRtr.interfaces.hqCli.ip}/${devices.hqRtr.interfaces.hqCli.mask}' >> /etc/net/ifaces/vlan200/ipv4address
-echo '${devices.hqRtr.interfaces.vlan999.ip}/${devices.hqRtr.interfaces.vlan999.mask}' >> /etc/net/ifaces/vlan999/ipv4address
+ovs-vsctl add-port HQ-SW ${devices.hqRtr.interfaces.hqSrv.name} tag=100 -- set interface ${devices.hqRtr.interfaces.hqSrv.name} type=internal
+ovs-vsctl add-port HQ-SW ${devices.hqRtr.interfaces.hqCli.name} tag=200 -- set interface ${devices.hqRtr.interfaces.hqCli.name} type=internal
+ovs-vsctl add-port HQ-SW ${devices.hqRtr.interfaces.vlan999.name} tag=999 -- set interface ${devices.hqRtr.interfaces.vlan999.name} type=internal
+mkdir /etc/net/ifaces/${devices.hqRtr.interfaces.hqSrv.name}
+mkdir /etc/net/ifaces/${devices.hqRtr.interfaces.hqCli.name}
+mkdir /etc/net/ifaces/${devices.hqRtr.interfaces.vlan999.name}
+cp /etc/net/ifaces/ens18/options /etc/net/ifaces/${devices.hqRtr.interfaces.hqSrv.name}/options
+cp /etc/net/ifaces/ens18/options /etc/net/ifaces/${devices.hqRtr.interfaces.hqCli.name}/options
+cp /etc/net/ifaces/ens18/options /etc/net/ifaces/${devices.hqRtr.interfaces.vlan999.name}/options
+echo '${devices.hqRtr.interfaces.hqSrv.ip}/${devices.hqRtr.interfaces.hqSrv.mask}' >> /etc/net/ifaces/${devices.hqRtr.interfaces.hqSrv.name}/ipv4address
+echo '${devices.hqRtr.interfaces.hqCli.ip}/${devices.hqRtr.interfaces.hqCli.mask}' >> /etc/net/ifaces/${devices.hqRtr.interfaces.hqCli.name}/ipv4address
+echo '${devices.hqRtr.interfaces.vlan999.ip}/${devices.hqRtr.interfaces.vlan999.mask}' >> /etc/net/ifaces/${devices.hqRtr.interfaces.vlan999.name}/ipv4address
 systemctl restart network
 ip -br a
 </code></pre>
@@ -229,8 +237,9 @@ ip -br a
 <p><code>apt-get install -y frr</code></p>
 <p><code>vim /etc/frr/daemons</code></p>
 <p>исправить строку <code>ospfd=yes</code></p>
-<p><code>systemctl restart frr</code></p>
-<p><code>systemctl enable --now frr</code></p>
+<p><pre><code>systemctl restart frr
+systemctl enable --now frr
+</code></pre></p>
 <pre><code>vtysh
 conf t
 ip forwarding
@@ -255,10 +264,10 @@ ex
 <p><code>apt-get install -y frr</code></p>
 <p><code>vim /etc/frr/daemons</code></p>
 <p>исправить строку <code>ospfd=yes</code></p>
-<p><code>systemctl restart frr</code></p>
-<p><code>systemctl enable --now frr</code></p>
-<pre><code>
-vtysh
+<p><pre><code>systemctl restart frr
+systemctl enable --now frr
+</code></pre></p>
+<pre><code>vtysh
 conf t
 ip forwarding
 router ospf
@@ -326,9 +335,9 @@ subnet ${devices.hqRtr.interfaces.hqCli.netAddress} netmask ${cidrToMask(devices
 &#9;option routers ${devices.hqRtr.interfaces.hqCli.ip};
 }</code></pre></p>
 <p>Если нужно, выключить режим вставки <code>:set nopaste</code> </p>
-<br>
-<p><code>systemctl restart dhcpd</code></p>
-<p><code>systemctl enable dhcpd</code></p>
+<p><pre><code>systemctl restart dhcpd
+systemctl enable dhcpd
+</code></pre></p>
 <br>
 <p>HQ-CLI</p>
 <p>проверка работы dhcp</p>
@@ -424,21 +433,37 @@ moodle&#9;IN&#9;CNAME&#9;hq-rtr.au-team.irpo.
 <p>BR-RTR</p>
 <p><pre><code>echo -e 'nameserver ${devices.hqSrv.interfaces.hqRtr.ip}\\ndomain au-team.irpo' > /etc/net/ifaces/ens18/resolv.conf
 systemctl restart network
+ping -c 1 hq-rtr
+ping -c 1 hq-srv
+ping -c 1 hq-cli
+ping -c 1 br-srv
 </code></pre></p>
 <br>
 <p>BR-SRV</p>
 <p><pre><code>echo -e 'nameserver ${devices.hqSrv.interfaces.hqRtr.ip}\\ndomain au-team.irpo' > /etc/net/ifaces/ens18/resolv.conf
 systemctl restart network
+ping -c 1 hq-rtr
+ping -c 1 hq-srv
+ping -c 1 hq-cli
+ping -c 1 br-rtr
 </code></pre></p>
 <br>
 <p>HQ-RTR</p>
 <p><pre><code>echo -e 'nameserver ${devices.hqSrv.interfaces.hqRtr.ip}\\ndomain au-team.irpo' > /etc/net/ifaces/ens18/resolv.conf
 systemctl restart network
+ping -c 1 hq-srv
+ping -c 1 hq-cli
+ping -c 1 br-rtr
+ping -c 1 br-srv
 </code></pre></p>
 <br>
 <p>HQ-CLI</p>
 <p><pre><code>echo -e 'nameserver ${devices.hqSrv.interfaces.hqRtr.ip}\\ndomain au-team.irpo' > /etc/net/ifaces/ens18/resolv.conf
 systemctl restart network
+ping -c 1 hq-rtr
+ping -c 1 hq-srv
+ping -c 1 br-rtr
+ping -c 1 br-srv
 </code></pre></p>
 <br>
 <h3>Задание 11</h3>
@@ -457,14 +482,13 @@ mkdir -p /var/lib/samba/sysvol
 samba-tool domain provision
 </code></pre></p>
 <p><code>P@ssw0rd</code></p>
-<p><pre><code>
-systemctl enable --now samba.service
+<p><pre><code>systemctl enable --now samba.service
 \\cp -f /var/lib/samba/private/krb5.conf /etc/
 </code></pre></p>
 <p><code>visudo</code></p>
 <p>добавляем ниже <code># root ALL=(ALL:ALL) ALL</code></p>
 <p><code>%hq ALL=(ALL) NOPASSWD: /bin/cat, /bin/grep, /usr/bin/id</code></p>
-<p><code>vim /opt/users.csv</code></p>
+<p><code>vim /opt/five_users.csv</code></p>
 <p>добавляем (проследить, чтобы не было пустых строк)</p>
 <p><pre><code>user1.hq;P@ssw0rd
 user2.hq;P@ssw0rd
@@ -480,9 +504,11 @@ while IFS=';' read -r username password; do
 done < /opt/five_users.csv
 </code></pre></p>
 <p>сохраняем</p>
-<p><code>chmod +x /opt/smdscripts/import.sh</code></p>
-<p><code>samba-tool group create hq</code></p>
-<p><code>/opt/smdscripts/import.sh</code></p>
+<p>проверяем:</p>
+<p><pre><code>chmod +x /opt/smdscripts/import.sh
+samba-tool group create hq
+/opt/smdscripts/import.sh
+</code></pre></p>
 <p><code>samba-tool dns add br-srv.au-team.irpo au-team.irpo hq-rtr A ${devices.hqRtr.interfaces.hqSrv.ip} -U Administrator</code></p>
 <p>пароль <code>P@ssw0rd</code></p>
 <p><code>samba-tool dns add br-srv.au-team.irpo au-team.irpo wiki CNAME hq-rtr.au-team.irpo -U Administrator</code></p>
@@ -511,25 +537,27 @@ systemctl restart network
 <br>
 <h3>Задание 2</h3>
 <p>HQ-SRV</p>
-<p><code>mdadm --create --verbose /dev/md0 --level=5 --raid-devices=3 /dev/sdc /dev/sdb /dev/sdd</code></p>
-<p><code>mdadm --detail --scan | tee a /etc/mdadm.conf</code></p>
-<p><code>mkfs.ext4 /dev/md0</code></p>
-<p><code>mkdir -p /raid5</code></p>
-<p><code>blkid /dev/md0 >> /etc/fstab</code></p>
+<p><pre><code>mdadm --create --verbose /dev/md0 --level=5 --raid-devices=3 /dev/sdc /dev/sdb /dev/sdd
+mdadm --detail --scan | tee a /etc/mdadm.conf
+mkfs.ext4 /dev/md0
+mkdir -p /raid5
+blkid /dev/md0 >> /etc/fstab
+</code></pre></p>
 <p><code>vim /etc/fstab</code></p>
-<p>в последней строке оставляем только UUID и приписываем /raid5 ext4 defaults 0 0 </p>
+<p>в последней строке оставляем только UUID и приписываем <code>/raid5 ext4 defaults 0 0</code></p>
 <p>сохраняем</p>
-<p>проверяем что пространство монтируется</p>
+<p>проверяем что пространство монтируется:</p>
 <p><code>mount -a</code></p>
 <p>ошибок не должно быть</p>
 <p><code>apt-get install -y nfs-server</code></p>
 <p><code>mkdir -p /raid5/nfs</code></p>
 <p><code>vim /etc/exports</code></p>
-<p>добавляем второй строкой /raid5/nfs ${devices.hqCli.interfaces.hqRtr.ip}(rw,sync,no_subtree_check)</p>
+<p>добавляем второй строкой <code>/raid5/nfs ${devices.hqCli.interfaces.hqRtr.ip}(rw,sync,no_subtree_check)</code></p>
 <p>сохраняем</p>
-<p><code>exportfs -a</code></p>
-<p><code>systemctl restart nfs-server.service</code></p>
-<p><code>systemctl enable --now nfs-server.service</code></p>
+<p><pre><code>exportfs -a
+systemctl restart nfs-server.service
+systemctl enable --now nfs-server.service
+</code></pre></p>
 <br>
 <p>HQ-CLI</p>
 <p>пользователь <code>user</code></p>
@@ -562,9 +590,10 @@ allow ${devices.brRtr.interfaces.brSrv.netAddress}/${devices.brRtr.interfaces.br
 <p><code>systemctl restart chronyd</code></p>
 <br>
 <p>HQ-SRV, HQ-CLI, BR-RTR, BR-SRV</p>
-<p><code>apt-get install -y chrony</code></p>
-<p><code>echo "server 192.168.1.1 iburst" >> /etc/chrony.conf</code></p>
-<p><code>systemctl restart chronyd</code></p>
+<p><pre><code>apt-get install -y chrony
+echo "server 192.168.1.1 iburst" >> /etc/chrony.conf
+systemctl restart chronyd
+</code></pre></p>
 <p>Проверка:</p>
 <p><code>chronyc tracking</code></p>
 <h3>Задание 4</h3>
@@ -574,11 +603,12 @@ allow ${devices.brRtr.interfaces.brSrv.netAddress}/${devices.brRtr.interfaces.br
 <p><code>echo -e "[all]\\nhq-srv ansible_host=${devices.hqSrv.interfaces.hqRtr.ip} ansible_connection=local\\nhq-cli ansible_host=${devices.hqCli.interfaces.hqRtr.ip} ansible_connection=local\\nhq-rtr ansible_host=${devices.hqRtr.interfaces.hqSrv.ip} ansible_connection=local\\nbr-rtr ansible_host=${devices.brRtr.interfaces.brSrv.ip} ansible_connection=local" | sudo tee /etc/ansible/hosts > /dev/null</code></p>
 <p>или</p>
 <p><code>vim /etc/ansible/hosts</code></p>
-<p><code>[all]</code></p>
-<p><code>hq-srv ansible_host=${devices.hqSrv.interfaces.hqRtr.ip} ansible_connection=local</code></p>
-<p><code>hq-cli ansible_host=${devices.hqCli.interfaces.hqRtr.ip} ansible_connection=local</code></p>
-<p><code>hq-rtr ansible_host=${devices.hqRtr.interfaces.hqSrv.ip} ansible_connection=local</code></p>
-<p><code>br-rtr ansible_host=${devices.brRtr.interfaces.brSrv.ip} ansible_connection=local</code></p>
+<p><pre><code>[all]
+hq-srv ansible_host=${devices.hqSrv.interfaces.hqRtr.ip} ansible_connection=local
+hq-cli ansible_host=${devices.hqCli.interfaces.hqRtr.ip} ansible_connection=local
+hq-rtr ansible_host=${devices.hqRtr.interfaces.hqSrv.ip} ansible_connection=local
+br-rtr ansible_host=${devices.brRtr.interfaces.brSrv.ip} ansible_connection=local
+</code></pre></p>
 <p>проверка</p>
 <p><code>ansible all -m ping</code></p>
 <br>
@@ -629,12 +659,14 @@ volumes:
 <br>
 <h3>Задание 6</h3>
 <p>HQ-RTR</p>
-<p><code>iptables -t nat -A PREROUTING -p tcp --dport 22 -j DNAT --to-destination ${devices.hqSrv.interfaces.hqRtr.ip}:2024</code></p>
-<p><code>iptables-save >> /etc/sysconfig/iptables</code></p>
+<p><pre><code>iptables -t nat -A PREROUTING -p tcp --dport 22 -j DNAT --to-destination ${devices.hqSrv.interfaces.hqRtr.ip}:2024
+iptables-save >> /etc/sysconfig/iptables
+</code></pre></p>
 <p>BR-RTR</p>
-<p><code>iptables -t nat -A PREROUTING -p tcp --dport 80 -j DNAT --to-destination ${devices.brSrv.interfaces.brRtr.ip}:8080</code></p>
-<p><code>iptables -t nat -A PREROUTING -p tcp --dport 22 -j DNAT --to-destination ${devices.brSrv.interfaces.brRtr.ip}:2024</code></p>
-<p><code>iptables-save >> /etc/sysconfig/iptables</code></p>
+<p><pre><code>iptables -t nat -A PREROUTING -p tcp --dport 80 -j DNAT --to-destination ${devices.brSrv.interfaces.brRtr.ip}:8080
+iptables -t nat -A PREROUTING -p tcp --dport 22 -j DNAT --to-destination ${devices.brSrv.interfaces.brRtr.ip}:2024
+iptables-save >> /etc/sysconfig/iptables
+</code></pre></p>
 <br>
 <h3>Задание 7</h3>
 <p>HQ-SRV</p>
@@ -651,19 +683,49 @@ volumes:
 <p><code>cd /var/www/webapps/moodle</code></p>
 <p><code>cp config-dist.php config.php</code></p>
 <p><code>vim config.php</code></p>
+<p>заменить или вставить:</p>
+<p><pre><code>$CFG->dbtype   = 'mariadb';
+$CFG->dblibrary = 'native';
+$CFG->dbhost   = 'localhost';
+$CFG->dbname   = 'moodledb';
+$CFG->dbuser   = 'moodle';
+$CFG->dbpass   = 'P@ssw0rd';
+$CFG->prefix   = 'mdl_';
+</code></pre></p>
+<p>ещё отдельно вставить:</p>
+<p><pre><code>$CFG->wwwroot   = 'http://moodle.au-team.irpo/moodle';
+$CFG->dataroot  = '/var/moodledata';
+</code></pre></p>
 <p><code>mkdir /var/moodledata</code></p>
 <p><code>chown -R apache:apache /var/moodledata</code></p>
 <p><code>chmod -R 0777 /var/moodledata</code></p>
 <p><code>a2enmod rewrite</code></p>
 <p><code>nano /etc/php/8.2/apache2-mod_php/php.ini</code></p>
+<p>Нажать <code>Ctrl+W</code> для поиска, ввести <code>max_input_vars</code>, нажать Enter</p>
+<p>найти и заменить на:</p>
+<p><pre><code>max_input_vars = 500
+</code></pre></p>
 <p><code>systemctl restart httpd2.service</code></p>
 <p><code>systemctl enable --now httpd2.service</code></p>
+<p>HQ-CLI</p>
+<p>вводим адрес: <code>moodle.au-team.irpo/moodle</code></p>
+<p>Нажимаем Continue</p>
+<p>Нажимаем Continue</p>
+<p>Нажимаем Continue</p>
+<p>вводим username: <code>admin</code></p>
+<p>вводим пароль: <code>P@ssw0rd</code></p>
+<p>Вводим First name: <code>admin</code></p>
+<p>Вводим Last name: <code>admin</code></p>
+<p>Вводим Email address: <code>admin@au-team.irpo</code></p>
+<p>Вводим Timezone: <code>Europe/Moscow</code></p>
+<p>Нажимаем Continue</p>
+<p>Вводим Support email: <code>admin@au-team.irpo</code></p>
+<p>Нажимаем Save changes</p>
 <h3>Задание 8</h3>
 <p>HQ-RTR</p>
 <p><code>apt-get install -y nginx</code></p>
 <p><code>vim /etc/nginx/sites-available.d/proxy.conf</code></p>
-<p><pre><code>
-server {
+<p><pre><code>server {
   listen 80;
   server_name moodle.au-team.irpo;
 
@@ -690,15 +752,18 @@ server {
 }
 </p></pre></code>
 <br>
-<p><code>ln -s /etc/nginx/sites-available.d/proxy.conf /etc/nginx/sites-enabled.d/</code></p>
-<p>Проверка: <code>nginx -t</code></p>
-<p><code>systemctl restart nginx</code></p>
-<p><code>systemctl enable --now nginx</code></p>
+<p><pre><code>ln -s /etc/nginx/sites-available.d/proxy.conf /etc/nginx/sites-enabled.d/
+nginx -t
+systemctl restart nginx
+systemctl enable --now nginx
+</code></pre></p>
 <br>
 <h3>Задание 9</h3>
 <p>HQ-CLI</p>
 <p><code>su -</code></p>
-<p><code>apt-get update</code></p>
-<p><code>apt-get install -y yandex-browser-stable</code></p>
+<p>пароль <code>toor</code></p>
+<p><pre><code>apt-get update
+apt-get install -y yandex-browser-stable
+</code></pre></p>
 <br>
 `;

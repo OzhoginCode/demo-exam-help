@@ -3,7 +3,7 @@ import onChange from 'on-change';
 
 import render from './render.js';
 
-import { getNetworks, createNetworkForm, getNetworkData, calculateNewDevices } from './networkForm.js';
+import { getNetworks, createNetworkForm, getNetworkData, calculateNewDevices, applyVlanNames } from './networkForm.js';
 
 const initialDevices = {
   isp: {
@@ -19,9 +19,9 @@ const initialDevices = {
     interfaces: {
       isp: { name: 'ens18', ip: '172.16.4.2', mask: '28', gateway: '172.16.4.1', destination: 'ISP', netAddress: '172.16.4.0', netName: 'ISP-HQ' },
       brRtr: { name: 'gre1', ip: '10.5.5.1', mask: '30', gateway: '-', destination: 'BR-RTR', netAddress: '10.5.5.0', netName: 'GRE' },
-      hqSrv: { name: 'VLAN100', ip: '192.168.100.1', mask: '26', gateway: '-', destination: 'HQ-SRV', netAddress: '192.168.100.0', netName: 'SRV-Net' },
-      hqCli: { name: 'VLAN200', ip: '192.168.200.1', mask: '28', gateway: '-', destination: 'HQ-CLI', netAddress: '192.168.200.0', netName: 'CLI-Net' },
-      vlan999: { name: 'VLAN999', ip: '192.168.99.1', mask: '29', gateway: '-', destination: 'VLAN999 (?)', netAddress: '192.168.99.0', netName: 'vlan999' },
+      hqSrv: { name: 'vlan100', ip: '192.168.100.1', mask: '26', gateway: '-', destination: 'HQ-SRV', netAddress: '192.168.100.0', netName: 'SRV-Net' },
+      hqCli: { name: 'vlan200', ip: '192.168.200.1', mask: '28', gateway: '-', destination: 'HQ-CLI', netAddress: '192.168.200.0', netName: 'CLI-Net' },
+      vlan999: { name: 'vlan999', ip: '192.168.99.1', mask: '29', gateway: '-', destination: 'VLAN999 (?)', netAddress: '192.168.99.0', netName: 'vlan999' },
     },
   },
   hqSrv: {
@@ -73,9 +73,10 @@ const app = () => {
 
   // @ts-ignore
   document.querySelector('#network-form button').addEventListener('click', () => {
-    const networkData = getNetworkData();
-    console.log(networkData);
-    const newDevices = calculateNewDevices(initialDevices, networkData);
+    const { networkData, vlanNames } = getNetworkData();
+    console.log(networkData, vlanNames);
+    let newDevices = calculateNewDevices(initialDevices, networkData);
+    newDevices = applyVlanNames(newDevices, vlanNames);
     console.log(newDevices);
     state.devices = newDevices;
   });
